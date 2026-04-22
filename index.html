@@ -3191,6 +3191,8 @@
 
                             html +=
                                 '<button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button>';
+                            
+                            html += `<button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button>`;
 
                             html += "</div></div>";
                         });
@@ -3263,7 +3265,20 @@
                 }
                 return;
             }
-
+if (action === 'delete') {
+    if (!auth.currentUser) {
+        alert('You must be logged in as admin to delete suggestions.');
+        return;
+    }
+    if (confirm('Are you sure you want to permanently delete this suggestion? This cannot be undone.')) {
+        db.collection('locationSuggestions').doc(docId).delete()
+            .catch(function(error) {
+                console.error('Error deleting suggestion:', error);
+                alert('Failed to delete suggestion. Please try again.');
+            });
+    }
+    return;
+}
             if (!auth.currentUser) {
                 alert(
                     "You must be logged in as admin to update status."
