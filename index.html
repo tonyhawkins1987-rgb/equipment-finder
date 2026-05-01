@@ -605,11 +605,86 @@
         .overflow-table tr:last-child td {
             border-bottom: none;
         }
-        .overflow-table tr.stale-row {
+                .overflow-table tr.stale-row {
             background: #fff8e1;
         }
-        .overflow-table tr.stale-row td:first-child::before {
-            content: "⚠️ ";
+        .overflow-stale-pill {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: #ff8f00;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 600;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        .overflow-item-dropdown {
+            position: absolute;
+            background: #ffffff;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 2000;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+            width: 100%;
+            left: 0;
+            top: 100%;
+        }
+        .overflow-item-dropdown-wrap {
+            position: relative;
+        }
+        .overflow-dropdown-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            color: #2c3e50;
+        }
+        .overflow-dropdown-item:hover {
+            background: #f0f4ff;
+        }
+        .overflow-dropdown-custom {
+            padding: 8px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            color: #1565c0;
+            border-top: 1px solid #e0e0e0;
+            font-style: italic;
+        }
+        .overflow-dropdown-custom:hover {
+            background: #e8f0fe;
+        }
+        .overflow-result-badge {
+            margin-top: 8px;
+            padding: 8px 10px;
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+        .overflow-result-badge-header {
+            font-weight: 700;
+            color: #e65100;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+        .overflow-result-entry {
+            color: #5d4037;
+            margin-bottom: 2px;
+            font-size: 12px;
+        }
+        .result-item-overflow-only {
+            padding: 12px 16px;
+            border: 2px solid #ffe082;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            background: #fffde7;
+        }
+        .result-item-overflow-only .result-name {
+            color: #e65100;
+        }
         }
         .overflow-actions-cell {
             white-space: nowrap;
@@ -721,14 +796,15 @@
                     <button type="button" class="btn-secondary" id="overflow-close-btn" style="font-size:18px;padding:2px 10px;">&times;</button>
                 </div>
                 <p class="overflow-panel-note">
-                    Anyone can add, edit or remove entries. Entries are highlighted if not updated within 7 days.
+                    Anyone can add, edit or remove entries. Entries highlighted in amber have not been updated in 7+ days.
                 </p>
 
-                <!-- Add / Edit form -->
+                <!-- Add form -->
                 <div class="overflow-add-row" id="overflow-form-row">
-                    <div>
+                    <div class="overflow-item-dropdown-wrap">
                         <label for="of-item">Item *</label>
-                        <input type="text" id="of-item" placeholder="e.g. Extra gauze rolls">
+                        <input type="text" id="of-item" placeholder="Type to search or enter item name" autocomplete="off">
+                        <div class="overflow-item-dropdown" id="of-item-dropdown" style="display:none;"></div>
                     </div>
                     <div>
                         <label for="of-qty">Quantity</label>
@@ -744,8 +820,8 @@
                     </div>
                 </div>
                 <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
-                    <button type="button" class="btn-primary" id="overflow-save-btn">Add Entry</button>
-                    <button type="button" class="btn-secondary" id="overflow-cancel-edit-btn" style="display:none;">Cancel Edit</button>
+                    <button type="button" class="btn-primary" id="overflow-save-btn">+ Add Entry</button>
+                    <button type="button" class="btn-secondary" id="overflow-cancel-edit-btn" style="display:none;">Cancel</button>
                     <span id="overflow-form-error" style="color:#c62828;font-size:12px;"></span>
                 </div>
 
@@ -767,7 +843,7 @@
                         </tbody>
                     </table>
                 </div>
-                <span class="overflow-stale-legend">⚠️ Highlighted rows have not been updated in 7+ days — please review or remove.</span>
+                <span class="overflow-stale-legend">⚠️ Amber rows have not been updated in 7+ days — please review or remove.</span>
             </div>
         </div>
 
@@ -2908,6 +2984,8 @@
             }
         }
 
+        function padTwo(n) { return String(n).padStart(2, "0"); }
+
         function escapeHtml(text) {
             const div = document.createElement("div");
             div.textContent = text == null ? "" : String(text);
@@ -2929,59 +3007,86 @@
             if (!matches || matches.length === 0) {
                 resultsDiv.innerHTML =
                     '<div class="no-results">No equipment found matching ' +
-                    escapeHtml(searchTerm || "") +
-                    ".</div>";
+                    escapeHtml(searchTerm || "") + ".</div>";
                 resultsCount.style.display = "none";
                 return;
             }
 
-            // Sort: items that start with searchTerm first, then alphabetical
             const searchLower = (searchTerm || "").toLowerCase();
             matches.sort(function (a, b) {
                 const aName = (a[0] || "").toLowerCase();
                 const bName = (b[0] || "").toLowerCase();
-
-                const aStarts =
-                    searchLower && aName.startsWith(searchLower);
-                const bStarts =
-                    searchLower && bName.startsWith(searchLower);
-
+                const aStarts = searchLower && aName.startsWith(searchLower);
+                const bStarts = searchLower && bName.startsWith(searchLower);
                 if (aStarts && !bStarts) return -1;
                 if (!aStarts && bStarts) return 1;
                 return aName.localeCompare(bName);
             });
 
-            resultsCount.textContent =
-                "Found " +
-                matches.length +
-                " item" +
-                (matches.length === 1 ? "" : "s");
+            resultsCount.textContent = "Found " + matches.length + " item" + (matches.length === 1 ? "" : "s");
             resultsCount.style.display = "block";
 
             let html = "";
             const displayMatches = matches.slice(0, 100);
             displayMatches.forEach(function (item) {
-                html +=
-                    '<div class="result-item">' +
-                    '<div class="result-name">' +
-                    highlightMatch(item[0], searchTerm) +
-                    "</div>" +
-                    '<div class="result-location">' +
-                    highlightMatch(item[1], searchTerm) +
-                    "</div>" +
+                const itemNameLower = (item[0] || "").toLowerCase();
+                // Find matching overflow entries (case-insensitive partial match)
+                const ovMatches = window._overflowDocs ? window._overflowDocs.filter(function (doc) {
+                    return (doc.data().item || "").toLowerCase().includes(itemNameLower) ||
+                           itemNameLower.includes((doc.data().item || "").toLowerCase());
+                }) : [];
+
+                let ovHtml = "";
+                if (ovMatches.length > 0) {
+                    ovHtml = '<div class="overflow-result-badge">' +
+                        '<div class="overflow-result-badge-header">📦 Overflow / Temp Stock</div>';
+                    ovMatches.slice(0, 3).forEach(function (doc) {
+                        var d = doc.data();
+                        var ts = d.updatedAt && d.updatedAt.toDate ? d.updatedAt.toDate() : null;
+                        var dateStr = ts ? padTwo(ts.getDate()) + "/" + padTwo(ts.getMonth()+1) + "/" + ts.getFullYear() : "Unknown date";
+                        ovHtml += '<div class="overflow-result-entry">📍 ' + escapeHtml(d.loc || "") +
+                            (d.qty ? " &nbsp;|&nbsp; Qty: " + escapeHtml(d.qty) : "") +
+                            " &nbsp;|&nbsp; " + escapeHtml(d.by || "") +
+                            " &nbsp;|&nbsp; " + dateStr + "</div>";
+                    });
+                    ovHtml += "</div>";
+                }
+
+                html += '<div class="result-item">' +
+                    '<div class="result-name">' + highlightMatch(item[0], searchTerm) + "</div>" +
+                    '<div class="result-location">' + highlightMatch(item[1], searchTerm) + "</div>" +
+                    ovHtml +
                     "</div>";
             });
 
+            // Also show custom overflow-only items (not in main data) that match the search
+            if (window._overflowDocs) {
+                const mainNames = data.map(function(d){ return (d[0]||"").toLowerCase(); });
+                window._overflowDocs.forEach(function (doc) {
+                    var d = doc.data();
+                    var ovName = (d.item || "").toLowerCase();
+                    // Only show if it matches the search AND is not already in the main database
+                    if (ovName.includes(searchLower) && !mainNames.some(function(n){ return n === ovName; })) {
+                        var ts = d.updatedAt && d.updatedAt.toDate ? d.updatedAt.toDate() : null;
+                        var dateStr = ts ? padTwo(ts.getDate()) + "/" + padTwo(ts.getMonth()+1) + "/" + ts.getFullYear() : "";
+                        html += '<div class="result-item-overflow-only">' +
+                            '<div class="result-name">📦 ' + escapeHtml(d.item || "") + ' <span style="font-size:11px;font-weight:400;color:#e65100;">(overflow/temp stock only)</span></div>' +
+                            '<div class="result-location">' + escapeHtml(d.loc || "") + '</div>' +
+                            '<div style="font-size:12px;color:#7f8c8d;margin-top:4px;">' +
+                            (d.qty ? "Qty: " + escapeHtml(d.qty) + " &nbsp;|&nbsp; " : "") +
+                            escapeHtml(d.by || "") + " &nbsp;|&nbsp; " + dateStr +
+                            "</div></div>";
+                    }
+                });
+            }
+
             if (matches.length > 100) {
-                html +=
-                    '<div class="no-results" style="color:#667eea;">Showing first 100 of ' +
-                    matches.length +
-                    " results. Refine your search for more specific results.</div>";
+                html += '<div class="no-results" style="color:#667eea;">Showing first 100 of ' +
+                    matches.length + " results. Refine your search for more specific results.</div>";
             }
 
             resultsDiv.innerHTML = html;
         }
-
         function performSearch() {
             const term = input.value.trim();
             if (!term) {
@@ -3613,10 +3718,10 @@ if (action === 'delete') {
                 errEl.textContent = "Save failed: " + (err.message || "unknown error");
             });
         });
-        // -----------------------------------------------
+             // -----------------------------------------------
         // Temporary Stock / Overflow Location — Firestore
         // Collection: overflowStock
-        // Fields: item, qty, loc, by, updatedAt
+        // Fields: item, qty, loc, by, updatedAt (serverTimestamp)
         // -----------------------------------------------
         (function () {
             var STALE_MS      = 7 * 24 * 60 * 60 * 1000;
@@ -3631,15 +3736,56 @@ if (action === 'delete') {
             var fQty          = document.getElementById("of-qty");
             var fLoc          = document.getElementById("of-loc");
             var fName         = document.getElementById("of-name");
+            var dropdown      = document.getElementById("of-item-dropdown");
             var ovUnsubscribe = null;
             var editingDocId  = null;
 
-            function pad(n) { return String(n).padStart(2, "0"); }
+            // ── Autocomplete dropdown ──────────────────────────────
+            fItem.addEventListener("input", function () {
+                var val = fItem.value.trim();
+                dropdown.innerHTML = "";
+                if (!val) { dropdown.style.display = "none"; return; }
+                var lower = val.toLowerCase();
+                var hits = data.filter(function (row) {
+                    return (row[0] || "").toLowerCase().includes(lower);
+                }).slice(0, 10);
 
-            function formatDate(ts) {
+                hits.forEach(function (row) {
+                    var el = document.createElement("div");
+                    el.className = "overflow-dropdown-item";
+                    el.textContent = row[0];
+                    el.addEventListener("mousedown", function (e) {
+                        e.preventDefault();
+                        fItem.value = row[0];
+                        dropdown.style.display = "none";
+                        fQty.focus();
+                    });
+                    dropdown.appendChild(el);
+                });
+
+                // Always add custom entry option
+                var custom = document.createElement("div");
+                custom.className = "overflow-dropdown-custom";
+                custom.textContent = "➕ Add \"" + val + "\" as custom item";
+                custom.addEventListener("mousedown", function (e) {
+                    e.preventDefault();
+                    fItem.value = val;
+                    dropdown.style.display = "none";
+                    fQty.focus();
+                });
+                dropdown.appendChild(custom);
+                dropdown.style.display = "block";
+            });
+
+            fItem.addEventListener("blur", function () {
+                setTimeout(function () { dropdown.style.display = "none"; }, 150);
+            });
+
+            // ── Helpers ───────────────────────────────────────────
+            function fmt(ts) {
                 var d = new Date(ts);
-                return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear()
-                    + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+                return padTwo(d.getDate()) + "/" + padTwo(d.getMonth()+1) + "/" + d.getFullYear()
+                     + " " + padTwo(d.getHours()) + ":" + padTwo(d.getMinutes());
             }
 
             function clearForm() {
@@ -3647,11 +3793,20 @@ if (action === 'delete') {
                 fLoc.value = ""; fName.value = "";
                 formError.textContent = "";
                 editingDocId = null;
-                saveBtn.textContent = "Add Entry";
+                saveBtn.textContent = "+ Add Entry";
                 cancelEditBtn.style.display = "none";
+                dropdown.style.display = "none";
             }
 
+            function stalePill() {
+                return '<span class="overflow-stale-pill">⚑ Over 7 days old</span>';
+            }
+
+            // ── Render table ──────────────────────────────────────
             function renderTable(docs) {
+                // Store globally so search results can access live data
+                window._overflowDocs = docs;
+
                 if (!docs || docs.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6" class="overflow-empty">No entries yet. Add one above.</td></tr>';
                     return;
@@ -3661,12 +3816,15 @@ if (action === 'delete') {
                     var d     = doc.data();
                     var ts    = d.updatedAt && d.updatedAt.toDate ? d.updatedAt.toDate().getTime() : 0;
                     var stale = ts > 0 && (Date.now() - ts) >= STALE_MS;
-                    var dateStr = ts > 0 ? formatDate(ts) : "Unknown";
+                    var dateCell = ts > 0
+                        ? fmt(ts) + (stale ? stalePill() : "")
+                        : "Unknown";
+
                     rows += '<tr' + (stale ? ' class="stale-row"' : '') + ' data-id="' + doc.id + '">'
                         + '<td>' + escapeHtml(d.item || "") + '</td>'
                         + '<td>' + escapeHtml(d.qty  || "") + '</td>'
                         + '<td>' + escapeHtml(d.loc  || "") + '</td>'
-                        + '<td>' + dateStr + '</td>'
+                        + '<td>' + dateCell + '</td>'
                         + '<td>' + escapeHtml(d.by   || "") + '</td>'
                         + '<td><div class="overflow-actions-cell">'
                         + '<button class="suggestion-btn-small" data-ov-action="edit" style="color:#1565c0;border-color:#90caf9;">Edit</button>'
@@ -3677,43 +3835,48 @@ if (action === 'delete') {
                 tbody.innerHTML = rows;
             }
 
-            function subscribeOverflow() {
-                if (ovUnsubscribe) return;
-                tbody.innerHTML = '<tr><td colspan="6" class="overflow-empty">Loading...</td></tr>';
-                ovUnsubscribe = db.collection("overflowStock")
+            // ── Firestore listener ────────────────────────────────
+            // Starts on page load (not just when panel opens) so search
+            // results always have live overflow data available
+            function startGlobalListener() {
+                db.collection("overflowStock")
                     .orderBy("updatedAt", "desc")
                     .onSnapshot(function (snapshot) {
                         var docs = [];
                         snapshot.forEach(function (doc) { docs.push(doc); });
-                        renderTable(docs);
+                        window._overflowDocs = docs;
+                        // If panel is open, re-render table
+                        if (overlay.style.display === "flex") {
+                            renderTable(docs);
+                        }
                     }, function (err) {
-                        console.error("Overflow load error:", err);
-                        tbody.innerHTML = '<tr><td colspan="6" class="overflow-empty" style="color:#c62828;">Error loading entries. Check console.</td></tr>';
+                        console.error("Overflow listener error:", err);
                     });
             }
+            startGlobalListener();
 
-            function unsubscribeOverflow() {
-                if (ovUnsubscribe) { ovUnsubscribe(); ovUnsubscribe = null; }
-            }
-
+            // ── Open / close panel ────────────────────────────────
             openBtn.addEventListener("click", function () {
                 clearForm();
                 overlay.style.display = "flex";
-                subscribeOverflow();
+                // Render with whatever docs we already have
+                renderTable(window._overflowDocs || []);
             });
 
             function closePanel() {
                 overlay.style.display = "none";
                 clearForm();
-                unsubscribeOverflow();
             }
-
             closeBtn.addEventListener("click", closePanel);
             overlay.addEventListener("click", function (e) {
                 if (e.target === overlay) closePanel();
             });
-            cancelEditBtn.addEventListener("click", clearForm);
+            cancelEditBtn.addEventListener("click", function () {
+                clearForm();
+                renderTable(window._overflowDocs || []);
+            });
 
+            // ── Add / save entry ──────────────────────────────────
             saveBtn.addEventListener("click", function () {
                 var item = fItem.value.trim();
                 var qty  = fQty.value.trim();
@@ -3721,34 +3884,39 @@ if (action === 'delete') {
                 var name = fName.value.trim();
                 formError.textContent = "";
 
-                if (!item || !loc || !name) {
-                    formError.textContent = "Item, Location and Your Name are required.";
+                if (!item || !loc) {
+                    formError.textContent = "Item and Location are required.";
                     return;
                 }
 
+                // Force name via prompt if field is empty
+                if (!name) {
+                    var prompted = (prompt("Please enter your name or initials to continue:") || "").trim();
+                    if (!prompted) {
+                        formError.textContent = "A name or initials is required to save.";
+                        return;
+                    }
+                    name = prompted;
+                    fName.value = name;
+                }
+
                 var payload = {
-                    item: item,
-                    qty:  qty,
-                    loc:  loc,
-                    by:   name,
+                    item: item, qty: qty, loc: loc, by: name,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
 
                 if (editingDocId) {
                     db.collection("overflowStock").doc(editingDocId).update(payload)
                         .then(clearForm)
-                        .catch(function (err) {
-                            formError.textContent = "Update failed: " + (err.message || "error");
-                        });
+                        .catch(function (err) { formError.textContent = "Update failed: " + (err.message || "error"); });
                 } else {
                     db.collection("overflowStock").add(payload)
                         .then(clearForm)
-                        .catch(function (err) {
-                            formError.textContent = "Add failed: " + (err.message || "error");
-                        });
+                        .catch(function (err) { formError.textContent = "Add failed: " + (err.message || "error"); });
                 }
             });
 
+            // ── Row actions (inline edit + delete) ───────────────
             tbody.addEventListener("click", function (e) {
                 var btn = e.target.closest("[data-ov-action]");
                 if (!btn) return;
@@ -3756,28 +3924,70 @@ if (action === 'delete') {
                 var row    = btn.closest("tr");
                 var docId  = row.getAttribute("data-id");
 
+                // ── DELETE ──
                 if (action === "delete") {
                     if (!confirm("Remove this entry from the overflow list?")) return;
                     db.collection("overflowStock").doc(docId).delete()
-                        .catch(function (err) {
-                            alert("Delete failed: " + (err.message || "error"));
-                        });
+                        .catch(function (err) { alert("Delete failed: " + (err.message || "error")); });
+                    return;
                 }
 
+                // ── INLINE EDIT ──
                 if (action === "edit") {
-                    var cells  = row.querySelectorAll("td");
-                    editingDocId   = docId;
-                    fItem.value    = cells[0].textContent;
-                    fQty.value     = cells[1].textContent;
-                    fLoc.value     = cells[2].textContent;
-                    fName.value    = "";
-                    saveBtn.textContent = "Save Changes";
-                    cancelEditBtn.style.display = "inline-block";
-                    formError.textContent = "Please enter your name to confirm this edit.";
-                    fName.focus();
+                    // Read current cell values
+                    var cells = row.querySelectorAll("td");
+                    var curItem = cells[0].textContent;
+                    var curQty  = cells[1].textContent;
+                    var curLoc  = cells[2].textContent;
+
+                    // Replace cells 0-2 with inputs
+                    cells[0].innerHTML = '<input class="overflow-inline-input" value="' + escapeHtml(curItem) + '" style="width:100%;padding:4px 6px;border:1px solid #667eea;border-radius:6px;font-size:13px;">';
+                    cells[1].innerHTML = '<input class="overflow-inline-input" value="' + escapeHtml(curQty)  + '" style="width:100%;padding:4px 6px;border:1px solid #667eea;border-radius:6px;font-size:13px;">';
+                    cells[2].innerHTML = '<input class="overflow-inline-input" value="' + escapeHtml(curLoc)  + '" style="width:100%;padding:4px 6px;border:1px solid #667eea;border-radius:6px;font-size:13px;">';
+
+                    // Replace action buttons with Save/Cancel
+                    cells[5].innerHTML =
+                        '<div class="overflow-actions-cell">' +
+                        '<button class="suggestion-btn-small" data-ov-action="save-inline" style="color:#2e7d32;border-color:#a5d6a7;">Save</button>' +
+                        '<button class="suggestion-btn-small" data-ov-action="cancel-inline">Cancel</button>' +
+                        '</div>';
+                    cells[0].querySelector("input").focus();
+                    return;
+                }
+
+                // ── CANCEL INLINE ──
+                if (action === "cancel-inline") {
+                    renderTable(window._overflowDocs || []);
+                    return;
+                }
+
+                // ── SAVE INLINE ──
+                if (action === "save-inline") {
+                    var inputs = row.querySelectorAll(".overflow-inline-input");
+                    var newItem = inputs[0].value.trim();
+                    var newQty  = inputs[1].value.trim();
+                    var newLoc  = inputs[2].value.trim();
+
+                    if (!newItem || !newLoc) {
+                        alert("Item and Location cannot be empty.");
+                        return;
+                    }
+
+                    var editName = (prompt("Enter your name or initials to confirm this edit:") || "").trim();
+                    if (!editName) {
+                        alert("A name or initials is required to save changes.");
+                        return;
+                    }
+
+                    db.collection("overflowStock").doc(docId).update({
+                        item: newItem, qty: newQty, loc: newLoc,
+                        by: editName,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }).catch(function (err) { alert("Save failed: " + (err.message || "error")); });
+                    return;
                 }
             });
-        })(); 
+        })();
     </script>
 </body>
 </html>
