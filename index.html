@@ -502,7 +502,141 @@
             border-color: #667eea;
             background: #f0f4ff;
         }
+        /* Edit modal textarea */
+        .edit-modal-textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 50px;
+            outline: none;
+            background: #f8f9fa;
+            font-family: inherit;
+        }
+        .edit-modal-textarea:focus {
+            border-color: #667eea;
+            background: #ffffff;
+        }
 
+        /* Overflow/Temp Stock panel */
+        .overflow-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .overflow-panel {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 24px;
+            width: 100%;
+            max-width: 860px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+            margin: auto;
+        }
+        .overflow-panel h2 {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+        .overflow-panel-note {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 16px;
+        }
+        .overflow-add-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 2fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+            align-items: end;
+        }
+        .overflow-add-row input {
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            font-size: 13px;
+            outline: none;
+            background: #f8f9fa;
+            width: 100%;
+        }
+        .overflow-add-row input:focus {
+            border-color: #667eea;
+            background: #fff;
+        }
+        .overflow-add-row label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #7f8c8d;
+            margin-bottom: 4px;
+        }
+        .overflow-table-wrap {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        .overflow-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .overflow-table th {
+            background: #f0f4ff;
+            color: #2c3e50;
+            font-weight: 600;
+            padding: 9px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            white-space: nowrap;
+        }
+        .overflow-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+        .overflow-table tr:last-child td {
+            border-bottom: none;
+        }
+        .overflow-table tr.stale-row {
+            background: #fff8e1;
+        }
+        .overflow-table tr.stale-row td:first-child::before {
+            content: "⚠️ ";
+        }
+        .overflow-actions-cell {
+            white-space: nowrap;
+            display: flex;
+            gap: 5px;
+        }
+        .overflow-empty {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 13px;
+            padding: 24px 0;
+        }
+        .overflow-stale-legend {
+            font-size: 11px;
+            color: #856404;
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            border-radius: 6px;
+            padding: 5px 10px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        @media (max-width: 600px) {
+            .overflow-add-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
         .admin-empty {
             font-size: 13px;
             color: #7f8c8d;
@@ -565,6 +699,11 @@
                 Report missing/wrong item location
             </button>
         </div>
+                <div class="suggestion-bar" style="margin-top:4px;">
+            <button type="button" class="suggestion-btn" id="open-overflow-btn" style="background:#e8f5e9;border-color:#81c784;color:#2e7d32;">
+                📦 Temporary Stock / Overflow Location
+            </button>
+        </div>
         <div class="suggestion-status" id="suggestion-status-text"></div>
 
         <div class="results-count" id="results-count"></div>
@@ -574,6 +713,81 @@
         </div>
 
         <!-- Admin suggestions panel (hidden by default) -->
+                <!-- ===== Temporary Stock / Overflow Location Panel ===== -->
+        <div class="overflow-overlay" id="overflow-overlay">
+            <div class="overflow-panel">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <h2>📦 Temporary Stock / Overflow Locations</h2>
+                    <button type="button" class="btn-secondary" id="overflow-close-btn" style="font-size:18px;padding:2px 10px;">&times;</button>
+                </div>
+                <p class="overflow-panel-note">
+                    Anyone can add, edit or remove entries. Entries are highlighted if not updated within 7 days.
+                </p>
+
+                <!-- Add / Edit form -->
+                <div class="overflow-add-row" id="overflow-form-row">
+                    <div>
+                        <label for="of-item">Item *</label>
+                        <input type="text" id="of-item" placeholder="e.g. Extra gauze rolls">
+                    </div>
+                    <div>
+                        <label for="of-qty">Quantity</label>
+                        <input type="text" id="of-qty" placeholder="e.g. 3 boxes">
+                    </div>
+                    <div>
+                        <label for="of-loc">Location *</label>
+                        <input type="text" id="of-loc" placeholder="e.g. Bay 3 shelf 2">
+                    </div>
+                    <div>
+                        <label for="of-name">Your Name *</label>
+                        <input type="text" id="of-name" placeholder="First name">
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+                    <button type="button" class="btn-primary" id="overflow-save-btn">Add Entry</button>
+                    <button type="button" class="btn-secondary" id="overflow-cancel-edit-btn" style="display:none;">Cancel Edit</button>
+                    <span id="overflow-form-error" style="color:#c62828;font-size:12px;"></span>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-table-wrap">
+                    <table class="overflow-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Qty</th>
+                                <th>Location</th>
+                                <th>Date Added/Amended</th>
+                                <th>Added/Edited By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="overflow-tbody">
+                            <tr><td colspan="6" class="overflow-empty">No entries yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <span class="overflow-stale-legend">⚠️ Highlighted rows have not been updated in 7+ days — please review or remove.</span>
+            </div>
+        </div>
+
+        <!-- ===== Edit Suggestion Modal ===== -->
+        <div class="modal-overlay" id="edit-suggestion-overlay" style="display:none;">
+            <div class="modal" style="max-width:480px;">
+                <h2>Edit Suggestion</h2>
+                <p>Correct the item name or location wording below.</p>
+                <label for="edit-item-input">Item Name</label>
+                <textarea class="edit-modal-textarea" id="edit-item-input" rows="2"></textarea>
+                <label for="edit-location-input" style="margin-top:10px;display:block;">Suggested Location</label>
+                <textarea class="edit-modal-textarea" id="edit-location-input" rows="2"></textarea>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="edit-suggestion-cancel-btn">Cancel</button>
+                    <button type="button" class="btn-primary" id="edit-suggestion-save-btn">Save Changes</button>
+                </div>
+                <div class="modal-error" id="edit-suggestion-error"></div>
+            </div>
+        </div>
+
         <div class="admin-panel" id="admin-panel">
             <h2>Admin Suggestions Panel</h2>
             <div class="admin-panel-email" id="admin-email"></div>
@@ -3207,6 +3421,8 @@
 
                             html +=
                                 '<button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button>';
+                                                            html +=
+                                '<button type="button" class="suggestion-btn-small" data-action="edit" style="color:#1565c0;border-color:#90caf9;">Edit</button>';
                             
                             html += `<button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button>`;
 
@@ -3281,6 +3497,14 @@
                 }
                 return;
             }
+                        if (action === "edit") {
+                document.getElementById("edit-item-input").value = itemText;
+                document.getElementById("edit-location-input").value = correctLocation;
+                document.getElementById("edit-suggestion-error").textContent = "";
+                document.getElementById("edit-suggestion-overlay").style.display = "flex";
+                document.getElementById("edit-suggestion-save-btn").setAttribute("data-doc-id", docId);
+                return;
+            }
 if (action === 'delete') {
     if (!auth.currentUser) {
         alert('You must be logged in as admin to delete suggestions.');
@@ -3353,6 +3577,188 @@ if (action === 'delete') {
                 unsubscribeFromSuggestions();
             }
         });
+            // -----------------------------------------------
+        // Edit Suggestion Modal logic
+        // -----------------------------------------------
+        document.getElementById("edit-suggestion-cancel-btn").addEventListener("click", function () {
+            document.getElementById("edit-suggestion-overlay").style.display = "none";
+        });
+        document.getElementById("edit-suggestion-overlay").addEventListener("click", function (e) {
+            if (e.target === document.getElementById("edit-suggestion-overlay")) {
+                document.getElementById("edit-suggestion-overlay").style.display = "none";
+            }
+        });
+        document.getElementById("edit-suggestion-save-btn").addEventListener("click", function () {
+            const docId = this.getAttribute("data-doc-id");
+            const newItem = document.getElementById("edit-item-input").value.trim();
+            const newLoc  = document.getElementById("edit-location-input").value.trim();
+            const errEl   = document.getElementById("edit-suggestion-error");
+            errEl.textContent = "";
+            if (!newItem || !newLoc) {
+                errEl.textContent = "Both fields are required.";
+                return;
+            }
+            if (!auth.currentUser) {
+                errEl.textContent = "You must be logged in as admin to edit.";
+                return;
+            }
+            db.collection("locationSuggestions").doc(docId).update({
+                itemText: newItem,
+                correctLocation: newLoc,
+                reviewedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                reviewedBy: auth.currentUser.email || null
+            }).then(function () {
+                document.getElementById("edit-suggestion-overlay").style.display = "none";
+            }).catch(function (err) {
+                errEl.textContent = "Save failed: " + (err.message || "unknown error");
+            });
+        });
+
+        // -----------------------------------------------
+        // Temporary Stock / Overflow Location logic
+        // -----------------------------------------------
+        (function () {
+            // In-memory store — no localStorage, resets on page refresh
+            var overflowEntries = [];
+            var nextId = 1;
+            var editingId = null;
+
+            var overlay      = document.getElementById("overflow-overlay");
+            var openBtn      = document.getElementById("open-overflow-btn");
+            var closeBtn     = document.getElementById("overflow-close-btn");
+            var saveBtn      = document.getElementById("overflow-save-btn");
+            var cancelEditBtn= document.getElementById("overflow-cancel-edit-btn");
+            var tbody        = document.getElementById("overflow-tbody");
+            var formError    = document.getElementById("overflow-form-error");
+            var fItem        = document.getElementById("of-item");
+            var fQty         = document.getElementById("of-qty");
+            var fLoc         = document.getElementById("of-loc");
+            var fName        = document.getElementById("of-name");
+
+            var STALE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
+
+            function pad(n) { return String(n).padStart(2, "0"); }
+
+            function formatDate(ts) {
+                var d = new Date(ts);
+                return pad(d.getDate()) + "/" + pad(d.getMonth()+1) + "/" + d.getFullYear()
+                    + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+            }
+
+            function isStale(ts) {
+                return (Date.now() - ts) >= STALE_MS;
+            }
+
+            function clearForm() {
+                fItem.value = ""; fQty.value = "";
+                fLoc.value = ""; fName.value = "";
+                formError.textContent = "";
+                editingId = null;
+                saveBtn.textContent = "Add Entry";
+                cancelEditBtn.style.display = "none";
+            }
+
+            function renderTable() {
+                if (overflowEntries.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="overflow-empty">No entries yet. Add one above.</td></tr>';
+                    return;
+                }
+                var rows = "";
+                overflowEntries.forEach(function (e) {
+                    var stale = isStale(e.ts);
+                    rows += '<tr' + (stale ? ' class="stale-row"' : '') + ' data-id="' + e.id + '">'
+                        + '<td>' + escapeHtml(e.item) + '</td>'
+                        + '<td>' + escapeHtml(e.qty) + '</td>'
+                        + '<td>' + escapeHtml(e.loc) + '</td>'
+                        + '<td>' + formatDate(e.ts) + '</td>'
+                        + '<td>' + escapeHtml(e.by) + '</td>'
+                        + '<td><div class="overflow-actions-cell">'
+                        + '<button class="suggestion-btn-small" data-ov-action="edit" style="color:#1565c0;border-color:#90caf9;">Edit</button>'
+                        + '<button class="suggestion-btn-small" data-ov-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button>'
+                        + '</div></td>'
+                        + '</tr>';
+                });
+                tbody.innerHTML = rows;
+            }
+
+            openBtn.addEventListener("click", function () {
+                clearForm();
+                renderTable();
+                overlay.style.display = "flex";
+            });
+
+            closeBtn.addEventListener("click", function () {
+                overlay.style.display = "none";
+                clearForm();
+            });
+
+            overlay.addEventListener("click", function (e) {
+                if (e.target === overlay) {
+                    overlay.style.display = "none";
+                    clearForm();
+                }
+            });
+
+            cancelEditBtn.addEventListener("click", clearForm);
+
+            saveBtn.addEventListener("click", function () {
+                var item = fItem.value.trim();
+                var qty  = fQty.value.trim();
+                var loc  = fLoc.value.trim();
+                var name = fName.value.trim();
+                formError.textContent = "";
+
+                if (!item || !loc || !name) {
+                    formError.textContent = "Item, Location and Your Name are required.";
+                    return;
+                }
+
+                if (editingId !== null) {
+                    // Update existing
+                    var idx = overflowEntries.findIndex(function(e){ return e.id === editingId; });
+                    if (idx > -1) {
+                        overflowEntries[idx].item = item;
+                        overflowEntries[idx].qty  = qty;
+                        overflowEntries[idx].loc  = loc;
+                        overflowEntries[idx].by   = name;
+                        overflowEntries[idx].ts   = Date.now();
+                    }
+                } else {
+                    // New entry
+                    overflowEntries.push({ id: nextId++, item: item, qty: qty, loc: loc, by: name, ts: Date.now() });
+                }
+
+                clearForm();
+                renderTable();
+            });
+
+            tbody.addEventListener("click", function (e) {
+                var btn = e.target.closest("[data-ov-action]");
+                if (!btn) return;
+                var action = btn.getAttribute("data-ov-action");
+                var row    = btn.closest("tr");
+                var id     = parseInt(row.getAttribute("data-id"), 10);
+
+                if (action === "delete") {
+                    if (!confirm("Remove this entry?")) return;
+                    overflowEntries = overflowEntries.filter(function(e){ return e.id !== id; });
+                    renderTable();
+                }
+                if (action === "edit") {
+                    var entry = overflowEntries.find(function(e){ return e.id === id; });
+                    if (!entry) return;
+                    editingId = id;
+                    fItem.value = entry.item;
+                    fQty.value  = entry.qty;
+                    fLoc.value  = entry.loc;
+                    fName.value = "";   // always require name re-entry on edit
+                    saveBtn.textContent = "Save Changes";
+                    cancelEditBtn.style.display = "inline-block";
+                    formError.textContent = "Please enter your name to save changes.";
+                    fName.focus();
+                }
+            });
+        })();
     </script>
 </body>
 </html>
