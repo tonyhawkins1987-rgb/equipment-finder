@@ -620,41 +620,54 @@
             vertical-align: middle;
             white-space: nowrap;
         }
-        .overflow-item-dropdown {
-            position: absolute;
-            background: #ffffff;
-            border: 1px solid #d0d0d0;
-            border-radius: 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 2000;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+        .overflow-item-search-results {
             width: 100%;
-            left: 0;
-            top: 100%;
+            max-height: 260px;
+            overflow-y: auto;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            background: #ffffff;
+            margin-top: 4px;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.13);
+            display: none;
+        }
+        .overflow-item-search-results .result-item {
+            margin-bottom: 0;
+            border-radius: 0;
+            border: none;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            padding: 10px 14px;
+        }
+        .overflow-item-search-results .result-item:last-child {
+            border-bottom: none;
+        }
+        .overflow-item-search-results .result-item:hover {
+            background: #f0f4ff;
+            transform: none;
+            box-shadow: none;
+            border-color: transparent;
+        }
+        .overflow-item-search-results .result-name {
+            font-size: 13px;
+        }
+        .overflow-item-search-results .result-location {
+            font-size: 12px;
+        }
+        .overflow-custom-item-row {
+            padding: 9px 14px;
+            font-size: 13px;
+            color: #1565c0;
+            font-style: italic;
+            cursor: pointer;
+            border-top: 1px solid #e0e0e0;
+            background: #f8f9ff;
+        }
+        .overflow-custom-item-row:hover {
+            background: #e8f0fe;
         }
         .overflow-item-dropdown-wrap {
             position: relative;
-        }
-        .overflow-dropdown-item {
-            padding: 8px 12px;
-            font-size: 13px;
-            cursor: pointer;
-            color: #2c3e50;
-        }
-        .overflow-dropdown-item:hover {
-            background: #f0f4ff;
-        }
-        .overflow-dropdown-custom {
-            padding: 8px 12px;
-            font-size: 13px;
-            cursor: pointer;
-            color: #1565c0;
-            border-top: 1px solid #e0e0e0;
-            font-style: italic;
-        }
-        .overflow-dropdown-custom:hover {
-            background: #e8f0fe;
         }
         .overflow-result-badge {
             margin-top: 8px;
@@ -803,8 +816,7 @@
                 <div class="overflow-add-row" id="overflow-form-row">
                     <div class="overflow-item-dropdown-wrap">
                         <label for="of-item">Item *</label>
-                        <input type="text" id="of-item" placeholder="Type to search or enter item name" autocomplete="off">
-                        <div class="overflow-item-dropdown" id="of-item-dropdown" style="display:none;"></div>
+                        <input type="text" id="of-item" placeholder="Type to search items..." autocomplete="off">
                     </div>
                     <div>
                         <label for="of-qty">Quantity</label>
@@ -819,6 +831,8 @@
                         <input type="text" id="of-name" placeholder="First name">
                     </div>
                 </div>
+                                <!-- Item search results panel -->
+                <div class="overflow-item-search-results" id="of-item-results"></div>
                 <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
                     <button type="button" class="btn-primary" id="overflow-save-btn">+ Add Entry</button>
                     <button type="button" class="btn-secondary" id="overflow-cancel-edit-btn" style="display:none;">Cancel</button>
@@ -3736,49 +3750,83 @@ if (action === 'delete') {
             var fQty          = document.getElementById("of-qty");
             var fLoc          = document.getElementById("of-loc");
             var fName         = document.getElementById("of-name");
-            var dropdown      = document.getElementById("of-item-dropdown");
             var ovUnsubscribe = null;
             var editingDocId  = null;
 
             // ── Autocomplete dropdown ──────────────────────────────
+            var ovResults = document.getElementById("of-item-results");
+
+            function hideOvResults() {
+                ovResults.style.display = "none";
+                ovResults.innerHTML = "";
+            }
+
             fItem.addEventListener("input", function () {
                 var val = fItem.value.trim();
-                dropdown.innerHTML = "";
-                if (!val) { dropdown.style.display = "none"; return; }
+                ovResults.innerHTML = "";
+
+                if (!val) { hideOvResults(); return; }
+
                 var lower = val.toLowerCase();
+
+                // Same filter logic as performSearch() — full data array, no slice cap on filter
                 var hits = data.filter(function (row) {
                     return (row[0] || "").toLowerCase().includes(lower);
-                }).slice(0, 10);
-
-                hits.forEach(function (row) {
-                    var el = document.createElement("div");
-                    el.className = "overflow-dropdown-item";
-                    el.textContent = row[0];
-                    el.addEventListener("mousedown", function (e) {
-                        e.preventDefault();
-                        fItem.value = row[0];
-                        dropdown.style.display = "none";
-                        fQty.focus();
-                    });
-                    dropdown.appendChild(el);
                 });
 
-                // Always add custom entry option
-                var custom = document.createElement("div");
-                custom.className = "overflow-dropdown-custom";
-                custom.textContent = "➕ Add \"" + val + "\" as custom item";
-                custom.addEventListener("mousedown", function (e) {
-                    e.preventDefault();
-                    fItem.value = val;
-                    dropdown.style.display = "none";
-                    fQty.focus();
+                if (hits.length === 0 && !val) { hideOvResults(); return; }
+
+                // Render up to 100 results using same result-item style as main page
+                var html = "";
+                hits.slice(0, 100).forEach(function (row) {
+                    html += '<div class="result-item" data-ov-pick="' + escapeHtml(row[0]) + '">'
+                        + '<div class="result-name">' + highlightMatch(row[0], val) + '</div>'
+                        + '</div>';
                 });
-                dropdown.appendChild(custom);
-                dropdown.style.display = "block";
+
+                if (hits.length > 100) {
+                    html += '<div style="padding:8px 14px;font-size:12px;color:#667eea;">Showing first 100 of '
+                        + hits.length + ' results — type more to narrow down</div>';
+                }
+
+                // Always show custom entry option at the bottom
+                html += '<div class="overflow-custom-item-row" id="of-custom-pick">'
+                    + '➕ Add &ldquo;' + escapeHtml(val) + '&rdquo; as custom item'
+                    + '</div>';
+
+                ovResults.innerHTML = html;
+                ovResults.style.display = "block";
             });
 
+            // Click handler for results panel
+            ovResults.addEventListener("mousedown", function (e) {
+                // Custom item row
+                var customRow = e.target.closest("#of-custom-pick");
+                if (customRow) {
+                    e.preventDefault();
+                    fItem.value = fItem.value.trim();
+                    hideOvResults();
+                    fQty.focus();
+                    return;
+                }
+                // Standard result row
+                var picked = e.target.closest("[data-ov-pick]");
+                if (picked) {
+                    e.preventDefault();
+                    fItem.value = picked.getAttribute("data-ov-pick");
+                    hideOvResults();
+                    fQty.focus();
+                }
+            });
+
+            // Hide results when focus leaves the item field
             fItem.addEventListener("blur", function () {
-                setTimeout(function () { dropdown.style.display = "none"; }, 150);
+                setTimeout(hideOvResults, 180);
+            });
+
+            // Also hide if user presses Escape
+            fItem.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") hideOvResults();
             });
 
             // ── Helpers ───────────────────────────────────────────
