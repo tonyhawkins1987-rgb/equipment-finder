@@ -699,7 +699,7 @@
                 Report missing/wrong item location
             </button>
         </div>
-                <div class="suggestion-bar" style="margin-top:4px;">
+        <div class="suggestion-bar" style="margin-top:4px;">
             <button type="button" class="suggestion-btn" id="open-overflow-btn" style="background:#e8f5e9;border-color:#81c784;color:#2e7d32;">
                 📦 Temporary Stock / Overflow Location
             </button>
@@ -3613,65 +3613,61 @@ if (action === 'delete') {
                 errEl.textContent = "Save failed: " + (err.message || "unknown error");
             });
         });
-
         // -----------------------------------------------
-        // Temporary Stock / Overflow Location logic
+        // Temporary Stock / Overflow Location — Firestore
+        // Collection: overflowStock
+        // Fields: item, qty, loc, by, updatedAt
         // -----------------------------------------------
         (function () {
-            // In-memory store — no localStorage, resets on page refresh
-            var overflowEntries = [];
-            var nextId = 1;
-            var editingId = null;
-
-            var overlay      = document.getElementById("overflow-overlay");
-            var openBtn      = document.getElementById("open-overflow-btn");
-            var closeBtn     = document.getElementById("overflow-close-btn");
-            var saveBtn      = document.getElementById("overflow-save-btn");
-            var cancelEditBtn= document.getElementById("overflow-cancel-edit-btn");
-            var tbody        = document.getElementById("overflow-tbody");
-            var formError    = document.getElementById("overflow-form-error");
-            var fItem        = document.getElementById("of-item");
-            var fQty         = document.getElementById("of-qty");
-            var fLoc         = document.getElementById("of-loc");
-            var fName        = document.getElementById("of-name");
-
-            var STALE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
+            var STALE_MS      = 7 * 24 * 60 * 60 * 1000;
+            var overlay       = document.getElementById("overflow-overlay");
+            var openBtn       = document.getElementById("open-overflow-btn");
+            var closeBtn      = document.getElementById("overflow-close-btn");
+            var saveBtn       = document.getElementById("overflow-save-btn");
+            var cancelEditBtn = document.getElementById("overflow-cancel-edit-btn");
+            var tbody         = document.getElementById("overflow-tbody");
+            var formError     = document.getElementById("overflow-form-error");
+            var fItem         = document.getElementById("of-item");
+            var fQty          = document.getElementById("of-qty");
+            var fLoc          = document.getElementById("of-loc");
+            var fName         = document.getElementById("of-name");
+            var ovUnsubscribe = null;
+            var editingDocId  = null;
 
             function pad(n) { return String(n).padStart(2, "0"); }
 
             function formatDate(ts) {
                 var d = new Date(ts);
-                return pad(d.getDate()) + "/" + pad(d.getMonth()+1) + "/" + d.getFullYear()
+                return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear()
                     + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
-            }
-
-            function isStale(ts) {
-                return (Date.now() - ts) >= STALE_MS;
             }
 
             function clearForm() {
                 fItem.value = ""; fQty.value = "";
                 fLoc.value = ""; fName.value = "";
                 formError.textContent = "";
-                editingId = null;
+                editingDocId = null;
                 saveBtn.textContent = "Add Entry";
                 cancelEditBtn.style.display = "none";
             }
 
-            function renderTable() {
-                if (overflowEntries.length === 0) {
+            function renderTable(docs) {
+                if (!docs || docs.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6" class="overflow-empty">No entries yet. Add one above.</td></tr>';
                     return;
                 }
                 var rows = "";
-                overflowEntries.forEach(function (e) {
-                    var stale = isStale(e.ts);
-                    rows += '<tr' + (stale ? ' class="stale-row"' : '') + ' data-id="' + e.id + '">'
-                        + '<td>' + escapeHtml(e.item) + '</td>'
-                        + '<td>' + escapeHtml(e.qty) + '</td>'
-                        + '<td>' + escapeHtml(e.loc) + '</td>'
-                        + '<td>' + formatDate(e.ts) + '</td>'
-                        + '<td>' + escapeHtml(e.by) + '</td>'
+                docs.forEach(function (doc) {
+                    var d     = doc.data();
+                    var ts    = d.updatedAt && d.updatedAt.toDate ? d.updatedAt.toDate().getTime() : 0;
+                    var stale = ts > 0 && (Date.now() - ts) >= STALE_MS;
+                    var dateStr = ts > 0 ? formatDate(ts) : "Unknown";
+                    rows += '<tr' + (stale ? ' class="stale-row"' : '') + ' data-id="' + doc.id + '">'
+                        + '<td>' + escapeHtml(d.item || "") + '</td>'
+                        + '<td>' + escapeHtml(d.qty  || "") + '</td>'
+                        + '<td>' + escapeHtml(d.loc  || "") + '</td>'
+                        + '<td>' + dateStr + '</td>'
+                        + '<td>' + escapeHtml(d.by   || "") + '</td>'
                         + '<td><div class="overflow-actions-cell">'
                         + '<button class="suggestion-btn-small" data-ov-action="edit" style="color:#1565c0;border-color:#90caf9;">Edit</button>'
                         + '<button class="suggestion-btn-small" data-ov-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button>'
@@ -3681,24 +3677,41 @@ if (action === 'delete') {
                 tbody.innerHTML = rows;
             }
 
+            function subscribeOverflow() {
+                if (ovUnsubscribe) return;
+                tbody.innerHTML = '<tr><td colspan="6" class="overflow-empty">Loading...</td></tr>';
+                ovUnsubscribe = db.collection("overflowStock")
+                    .orderBy("updatedAt", "desc")
+                    .onSnapshot(function (snapshot) {
+                        var docs = [];
+                        snapshot.forEach(function (doc) { docs.push(doc); });
+                        renderTable(docs);
+                    }, function (err) {
+                        console.error("Overflow load error:", err);
+                        tbody.innerHTML = '<tr><td colspan="6" class="overflow-empty" style="color:#c62828;">Error loading entries. Check console.</td></tr>';
+                    });
+            }
+
+            function unsubscribeOverflow() {
+                if (ovUnsubscribe) { ovUnsubscribe(); ovUnsubscribe = null; }
+            }
+
             openBtn.addEventListener("click", function () {
                 clearForm();
-                renderTable();
                 overlay.style.display = "flex";
+                subscribeOverflow();
             });
 
-            closeBtn.addEventListener("click", function () {
+            function closePanel() {
                 overlay.style.display = "none";
                 clearForm();
-            });
+                unsubscribeOverflow();
+            }
 
+            closeBtn.addEventListener("click", closePanel);
             overlay.addEventListener("click", function (e) {
-                if (e.target === overlay) {
-                    overlay.style.display = "none";
-                    clearForm();
-                }
+                if (e.target === overlay) closePanel();
             });
-
             cancelEditBtn.addEventListener("click", clearForm);
 
             saveBtn.addEventListener("click", function () {
@@ -3713,23 +3726,27 @@ if (action === 'delete') {
                     return;
                 }
 
-                if (editingId !== null) {
-                    // Update existing
-                    var idx = overflowEntries.findIndex(function(e){ return e.id === editingId; });
-                    if (idx > -1) {
-                        overflowEntries[idx].item = item;
-                        overflowEntries[idx].qty  = qty;
-                        overflowEntries[idx].loc  = loc;
-                        overflowEntries[idx].by   = name;
-                        overflowEntries[idx].ts   = Date.now();
-                    }
-                } else {
-                    // New entry
-                    overflowEntries.push({ id: nextId++, item: item, qty: qty, loc: loc, by: name, ts: Date.now() });
-                }
+                var payload = {
+                    item: item,
+                    qty:  qty,
+                    loc:  loc,
+                    by:   name,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
 
-                clearForm();
-                renderTable();
+                if (editingDocId) {
+                    db.collection("overflowStock").doc(editingDocId).update(payload)
+                        .then(clearForm)
+                        .catch(function (err) {
+                            formError.textContent = "Update failed: " + (err.message || "error");
+                        });
+                } else {
+                    db.collection("overflowStock").add(payload)
+                        .then(clearForm)
+                        .catch(function (err) {
+                            formError.textContent = "Add failed: " + (err.message || "error");
+                        });
+                }
             });
 
             tbody.addEventListener("click", function (e) {
@@ -3737,28 +3754,30 @@ if (action === 'delete') {
                 if (!btn) return;
                 var action = btn.getAttribute("data-ov-action");
                 var row    = btn.closest("tr");
-                var id     = parseInt(row.getAttribute("data-id"), 10);
+                var docId  = row.getAttribute("data-id");
 
                 if (action === "delete") {
-                    if (!confirm("Remove this entry?")) return;
-                    overflowEntries = overflowEntries.filter(function(e){ return e.id !== id; });
-                    renderTable();
+                    if (!confirm("Remove this entry from the overflow list?")) return;
+                    db.collection("overflowStock").doc(docId).delete()
+                        .catch(function (err) {
+                            alert("Delete failed: " + (err.message || "error"));
+                        });
                 }
+
                 if (action === "edit") {
-                    var entry = overflowEntries.find(function(e){ return e.id === id; });
-                    if (!entry) return;
-                    editingId = id;
-                    fItem.value = entry.item;
-                    fQty.value  = entry.qty;
-                    fLoc.value  = entry.loc;
-                    fName.value = "";   // always require name re-entry on edit
+                    var cells  = row.querySelectorAll("td");
+                    editingDocId   = docId;
+                    fItem.value    = cells[0].textContent;
+                    fQty.value     = cells[1].textContent;
+                    fLoc.value     = cells[2].textContent;
+                    fName.value    = "";
                     saveBtn.textContent = "Save Changes";
                     cancelEditBtn.style.display = "inline-block";
-                    formError.textContent = "Please enter your name to save changes.";
+                    formError.textContent = "Please enter your name to confirm this edit.";
                     fName.focus();
                 }
             });
-        })();
+        })(); 
     </script>
 </body>
 </html>
