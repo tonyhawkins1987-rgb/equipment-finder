@@ -3836,14 +3836,14 @@ if (action === 'delete') {
                      + " " + padTwo(d.getHours()) + ":" + padTwo(d.getMinutes());
             }
 
-            function clearForm() {
+                        function clearForm() {
                 fItem.value = ""; fQty.value = "";
                 fLoc.value = ""; fName.value = "";
                 formError.textContent = "";
                 editingDocId = null;
                 saveBtn.textContent = "+ Add Entry";
                 cancelEditBtn.style.display = "none";
-                dropdown.style.display = "none";
+                hideOvResults();
             }
 
             function stalePill() {
