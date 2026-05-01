@@ -1,12 +1,10 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)https://tonyhawkins1987-rgb.github.io/equipment-finder/ -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
+<!-- Original source based on Equipment-Location-Finder.txt [file:1] -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
     <title>Equipment Location Finder</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
         * {
             margin: 0;
@@ -504,306 +502,7 @@
             border-color: #667eea;
             background: #f0f4ff;
         }
-/* ── SUGGESTION EDIT (inline) ── */
-        .suggestion-item.editing {
-            background: #f0f4ff;
-            border-color: #667eea;
-        }
-        .suggestion-display { }
-        .suggestion-edit-area {
-            display: none;
-            margin-top: 8px;
-        }
-        .suggestion-item.editing .suggestion-edit-area {
-            display: block;
-        }
-        .suggestion-item.editing .suggestion-display {
-            display: none;
-        }
-        .suggestion-edit-area textarea {
-            width: 100%;
-            padding: 7px 10px;
-            border-radius: 8px;
-            border: 2px solid #e0e0e0;
-            font-size: 13px;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 40px;
-            background: #f8f9fa;
-            margin-bottom: 5px;
-            outline: none;
-            box-sizing: border-box;
-        }
-        .suggestion-edit-area textarea:focus {
-            border-color: #667eea;
-            background: #fff;
-        }
-        .btn-save-edit {
-            padding: 4px 12px;
-            border-radius: 14px;
-            border: none;
-            background: #667eea;
-            color: #fff;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-save-edit:hover { background: #5563d6; }
-        .btn-cancel-edit {
-            padding: 4px 12px;
-            border-radius: 14px;
-            border: 1px solid #e0e0e0;
-            background: #fff;
-            color: #555;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-left: 4px;
-        }
-        .btn-cancel-edit:hover { border-color: #667eea; background: #f0f4ff; }
 
-        /* ── OVERFLOW BUTTON ── */
-        .overflow-btn {
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: 2px solid #e0a800;
-            background: #fff8e1;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 700;
-            transition: all 0.2s;
-            color: #7a5c00;
-        }
-        .overflow-btn:hover { border-color: #c68a00; background: #fff3cd; }
-
-        /* ── OVERFLOW MODAL ── */
-        .overflow-modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.45);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 999;
-        }
-        .overflow-modal {
-            background: #fff;
-            border-radius: 20px;
-            padding: 24px;
-            max-width: 860px;
-            width: 100%;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
-            max-height: 90vh;
-            overflow-y: auto;
-            margin: 0 12px;
-        }
-        .overflow-modal h2 {
-            font-size: 18px;
-            margin-bottom: 4px;
-            color: #2c3e50;
-        }
-        .overflow-note {
-            font-size: 12px;
-            color: #7f8c8d;
-            margin-bottom: 14px;
-        }
-        /* Item autocomplete */
-        .ov-item-wrap {
-            position: relative;
-        }
-        .ov-autocomplete-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #fff;
-            border: 2px solid #667eea;
-            border-top: none;
-            border-radius: 0 0 10px 10px;
-            max-height: 220px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-            box-shadow: 0 8px 20px rgba(102,126,234,0.15);
-        }
-        .ov-autocomplete-dropdown.open { display: block; }
-        .ov-ac-item {
-            padding: 8px 12px;
-            font-size: 13px;
-            cursor: pointer;
-            color: #2c3e50;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .ov-ac-item:last-child { border-bottom: none; }
-        .ov-ac-item:hover { background: #f0f4ff; color: #667eea; }
-        .ov-ac-item.ov-custom-add {
-            color: #667eea;
-            font-weight: 600;
-            background: #f8f9ff;
-        }
-        .ov-ac-item.ov-custom-add:hover { background: #e8edff; }
-        /* Add form */
-        .overflow-add-form {
-            display: grid;
-            grid-template-columns: 2.5fr 0.7fr 2fr 1.2fr auto;
-            gap: 8px;
-            margin-bottom: 6px;
-            align-items: end;
-        }
-        .overflow-add-form label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #2c3e50;
-            display: block;
-            margin-bottom: 3px;
-        }
-        .overflow-add-form input {
-            padding: 8px 10px;
-            border-radius: 10px;
-            border: 2px solid #e0e0e0;
-            font-size: 13px;
-            outline: none;
-            background: #f8f9fa;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .overflow-add-form input:focus {
-            border-color: #667eea;
-            background: #fff;
-        }
-        .btn-add-overflow {
-            padding: 9px 16px;
-            border-radius: 14px;
-            border: none;
-            background: #667eea;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-            align-self: end;
-        }
-        .btn-add-overflow:hover { background: #5563d6; }
-        /* Table */
-        .overflow-table-wrap { overflow-x: auto; margin-top: 10px; }
-        table.overflow-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .overflow-table th {
-            background: #f0f4ff;
-            color: #2c3e50;
-            font-weight: 700;
-            padding: 9px 10px;
-            text-align: left;
-            border-bottom: 2px solid #e0e0e0;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            white-space: nowrap;
-        }
-        .overflow-table td {
-            padding: 9px 10px;
-            border-bottom: 1px solid #f0f0f0;
-            vertical-align: middle;
-            color: #333;
-        }
-        .overflow-table tr:last-child td { border-bottom: none; }
-        .overflow-table tr:hover td { background: #fafafa; }
-        .overflow-table tr.stale td { background: #fff8e1 !important; }
-        .stale-flag {
-            display: inline-block;
-            margin-left: 6px;
-            background: #ff9800;
-            color: #fff;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: 999px;
-            vertical-align: middle;
-            white-space: nowrap;
-        }
-        .overflow-table td input.inline-edit {
-            padding: 4px 7px;
-            border-radius: 7px;
-            border: 2px solid #667eea;
-            font-size: 13px;
-            width: 100%;
-            min-width: 60px;
-            background: #f0f4ff;
-            outline: none;
-            box-sizing: border-box;
-        }
-        .overflow-action-btns { display: flex; gap: 5px; flex-wrap: nowrap; }
-        .btn-ov-edit, .btn-ov-delete, .btn-ov-save, .btn-ov-cancel {
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid #e0e0e0;
-            background: #fff;
-            color: #555;
-            white-space: nowrap;
-        }
-        .btn-ov-edit:hover { border-color: #667eea; background: #f0f4ff; }
-        .btn-ov-save { background: #667eea; color: #fff; border-color: #667eea; }
-        .btn-ov-save:hover { background: #5563d6; }
-        .btn-ov-delete { color: #c62828; border-color: #f5c6cb; }
-        .btn-ov-delete:hover { background: #fdecea; }
-        .btn-ov-cancel:hover { border-color: #aaa; }
-        .overflow-empty {
-            text-align: center;
-            padding: 30px 0;
-            color: #7f8c8d;
-            font-size: 13px;
-        }
-
-        /* ── OVERFLOW BADGE IN SEARCH RESULTS ── */
-        .result-overflow {
-            margin-top: 8px;
-            padding: 7px 10px;
-            background: #fff8e1;
-            border: 1px solid #ffe082;
-            border-radius: 8px;
-            font-size: 12px;
-        }
-        .result-overflow-label {
-            font-weight: 700;
-            color: #e65100;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            margin-bottom: 4px;
-        }
-        .result-overflow-entry {
-            color: #5d4037;
-            padding: 2px 0;
-            line-height: 1.5;
-        }
-        .result-overflow-entry + .result-overflow-entry {
-            border-top: 1px dashed #ffe082;
-            margin-top: 4px;
-            padding-top: 4px;
-        }
-        .result-overflow-loc { font-weight: 600; color: #e65100; }
-        /* Custom-only overflow result (no main DB match) */
-        .result-item.overflow-only {
-            border-color: #ffe082;
-            background: #fffde7;
-        }
-        .result-item.overflow-only .result-name { color: #e65100; }
-
-        @media (max-width: 600px) {
-            .overflow-add-form {
-                grid-template-columns: 1fr 1fr;
-            }
-            .overflow-add-form .btn-add-overflow {
-                grid-column: 1 / -1;
-            }
-        }
         .admin-empty {
             font-size: 13px;
             color: #7f8c8d;
@@ -826,80 +525,64 @@
             }
         }
     </style>
-    </head>
+</head>
 <body>
     <div class="container">
         <!-- Admin top-right controls -->
         <div class="admin-bar">
-            <span class="admin-label" id="admin-state-label">Admin (logged in)</span>
-            <button type="button" class="admin-btn" id="admin-login-btn">Admin panel</button>
-            <button type="button" class="logout-btn" id="admin-logout-btn" style="display: inline-block;">Log out</button>
+            <span class="admin-label" id="admin-state-label">Admin</span>
+            <button type="button" class="admin-btn" id="admin-login-btn">Log in</button>
+            <button type="button" class="logout-btn" id="admin-logout-btn">Log out</button>
         </div>
 
         <h1>🔍 Equipment Location Finder</h1>
         <p class="subtitle">Search Equipment by Name or Location</p>
 
-        <div class="status" id="status">✓ 1929 items loaded</div>
+        <div class="status" id="status">✓ 1913 items loaded</div>
 
         <div class="search-mode">
-            <button class="mode-btn active" onclick="setSearchMode(&#39;name&#39;)" id="mode-name">Search by Name</button>
-            <button class="mode-btn" onclick="setSearchMode(&#39;location&#39;)" id="mode-location">Search by Location</button>
-            <button class="mode-btn" onclick="setSearchMode(&#39;both&#39;)" id="mode-both">Search Both</button>
+            <button class="mode-btn active" onclick="setSearchMode('name')" id="mode-name">Search by Name</button>
+            <button class="mode-btn" onclick="setSearchMode('location')" id="mode-location">Search by Location</button>
+            <button class="mode-btn" onclick="setSearchMode('both')" id="mode-both">Search Both</button>
         </div>
 
         <div class="search-container">
             <label for="search" id="search-label">Equipment Name</label>
-            <input id="search" placeholder="Type search query here" autocomplete="on">
+            <input
+                id="search"
+                placeholder="Type search query here"
+                autocomplete="on"
+            />
         </div>
 
         <div class="filter-buttons" id="filters">
             <!-- Category filter buttons are generated by JS -->
-        <button class="filter-btn">Forceps</button><button class="filter-btn">Retractors</button><button class="filter-btn">Drains</button><button class="filter-btn">Catheters</button><button class="filter-btn">Trays</button><button class="filter-btn">Dressings</button><button class="filter-btn">Hip/Knee</button><button class="filter-btn">Scopes</button></div>
+        </div>
 
         <!-- New suggestion/report button -->
         <div class="suggestion-bar">
             <button type="button" class="suggestion-btn" id="open-suggestion-btn">
-                📋 Report missing/wrong item location
-            </button>
-            <button type="button" class="overflow-btn" id="open-overflow-btn">
-                📦 <strong>Temporary stock/overflow location</strong>
+                Report missing/wrong item location
             </button>
         </div>
         <div class="suggestion-status" id="suggestion-status-text"></div>
 
-        <div class="results-count" id="results-count" style="display: none;"></div>
+        <div class="results-count" id="results-count"></div>
 
-        <div class="results-container" id="results"><div class="no-results">No equipment found matching anthony.hawkins@health.nsw.gov.au.</div></div>
+        <div class="results-container" id="results">
+            <div class="no-results">Type to search equipment...</div>
+        </div>
 
         <!-- Admin suggestions panel (hidden by default) -->
-        <div class="admin-panel" id="admin-panel" style="display: block;">
+        <div class="admin-panel" id="admin-panel">
             <h2>Admin Suggestions Panel</h2>
-            <div class="admin-panel-email" id="admin-email">Logged in as: anthony.hawkins@health.nsw.gov.au</div>
+            <div class="admin-panel-email" id="admin-email"></div>
             <div class="admin-panel-note">
                 This panel is for reviewing items submitted via the “Report missing/wrong item location” button.
             </div>
-            <div class="suggestions-list" id="suggestions-list"><div class="suggestion-item" data-id="NZfsc9qiX0079yY6BUNB"><div class="suggestion-label">Item</div><div class="suggestion-text">CO2 gas sampling line</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 19:05:16 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:49:57</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="3kx1V8bzWIGOG3YxCHV9"><div class="suggestion-label">Item</div><div class="suggestion-text">CO2 filters</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 19:03:48 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:50:26</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="NVeqR42SPZUtCxiGZe0c"><div class="suggestion-label">Item</div><div class="suggestion-text">Nasal prongs with CO2 sampling</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 19:02:42 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:50:56</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="wISL5ZT7b6RGGqvmGGJK"><div class="suggestion-label">Item</div><div class="suggestion-text">Hudson mask adult</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 18:57:41 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:51:19</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="zQN0b6usTtOXkqWqd8jd"><div class="suggestion-label">Item</div><div class="suggestion-text">Liquorice stick (disposable flexi tube)</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 18:57:03 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:51:59</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="WK1xrhWUibIL7cTxeJrT"><div class="suggestion-label">Item</div><div class="suggestion-text">Oxygen tubing 2.1m</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 18:55:55 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:52:32</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="eOf0RqTDDKuzNM1Fyhr2"><div class="suggestion-label">Item</div><div class="suggestion-text">Oxygen tubing 4.2m</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 18:55:20 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:52:46</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="AuuDreyaOYTolOqwwvJc"><div class="suggestion-label">Item</div><div class="suggestion-text">Adult colorimetric CO2 detector</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 18:48:28 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:53:54</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="wXO5aKhLaI4oniKaCzVg"><div class="suggestion-label">Item</div><div class="suggestion-text">Optiflow low flow oxygen tubing</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 18:47:19 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:54:37</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="lW4bOE3XevrXkw3N1wvo"><div class="suggestion-label">Item</div><div class="suggestion-text">Optiflow nasal prongs with CO2 sampling</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 18:46:40 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:54:48</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="FlpiBf9eKBApkI3jRpsU"><div class="suggestion-label">Item</div><div class="suggestion-text">Optiflow Circuits</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 18:45:58 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:54:55</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="hWcNLwozwdhJ2vSLADwt"><div class="suggestion-label">Item</div><div class="suggestion-text">Face Masks Adult</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 18:45:25 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:55:33</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="lk06iBVTz3NnEvEYgIO1"><div class="suggestion-label">Item</div><div class="suggestion-text">Paediatric face masks</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 18:44:54 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:56:08</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="Pd4PHRVyFbHBXhiRZhTJ"><div class="suggestion-label">Item</div><div class="suggestion-text">T-bags</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 18:44:15 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:56:26</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="pV8t3l0mi4HteEAD6hwO"><div class="suggestion-label">Item</div><div class="suggestion-text">Y suction catheters</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 18:43:31 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:57:17</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="tKjeKM4dTW51mTVZToDQ"><div class="suggestion-label">Item</div><div class="suggestion-text">Ambu bags Adult</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Kmart compactor A shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 18:41:51 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:57:39</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="hW40cDyaZo5SPHFm7qhu"><div class="suggestion-label">Item</div><div class="suggestion-text">Sharps container 5.1lt</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room Metal shelving 
-shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:42:39</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="ZG3KHINCqlla8VmkmfMU"><div class="suggestion-label">Item</div><div class="suggestion-text">Sharps container 17lt</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Metal shelving shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:41:08</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="qILvsvuE4cclmGaLvMhh"><div class="suggestion-label">Item</div><div class="suggestion-text">Shoulder slings</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 10 - shelf 6</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:39:41</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="87j7nHePxUDMSJK27Gig"><div class="suggestion-label">Item</div><div class="suggestion-text">Abduction pillows for slings</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 10 - shelf 5</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:38:56</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="NTIo5Ijq8QXrLoy8XLCm"><div class="suggestion-label">Item</div><div class="suggestion-text">Slings small medium large extra large</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 10 - shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:37:37</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="oTpPxoPDind4DyQwIlUA"><div class="suggestion-label">Item</div><div class="suggestion-text">Knee immobiliser 51cm</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 10 - shelf 3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:36:05</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="2FMFtxUEkm1iCle1J0jz"><div class="suggestion-label">Item</div><div class="suggestion-text">Book of knowledge for O.A</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 10 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:34:52</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="Pd3LS3q4bC93vXb4odYg"><div class="suggestion-label">Item</div><div class="suggestion-text">Comfort pads for orthopaedic hoods</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shelf 6</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:33:12</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="ZPhSPJCVuCBw38Y53o1j"><div class="suggestion-label">Item</div><div class="suggestion-text">Nova sure &amp; CO2 bottles</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shef- 5</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:32:01</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="pzEGBwDoImBbrxZlbcM3"><div class="suggestion-label">Item</div><div class="suggestion-text">Tristel trio wipes system</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shelf - 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:30:15</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="Aw7GcehFNyOI7mcKwOCk"><div class="suggestion-label">Item</div><div class="suggestion-text">Mini saw &amp; drill console with foot pedal (Stryker)</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:29:17</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="2gME5Z59rD4VK375IPro"><div class="suggestion-label">Item</div><div class="suggestion-text">Suction filters and assorted filter accessories</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shelf 3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:27:02</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="4zcR14E5WvCqjvjWWqww"><div class="suggestion-label">Item</div><div class="suggestion-text">Drape clips (plastic)</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:25:05</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="O1DvIK8uz7HkRU2u58Jn"><div class="suggestion-label">Item</div><div class="suggestion-text">Leg straps for patient velcro</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:24:16</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="s2UIPCjd9eyIe6q5X1WZ"><div class="suggestion-label">Item</div><div class="suggestion-text">Patient support strap 
-(large &amp; wide)</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:23:10</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="hpPHcGmoFL5gNw82yOjl"><div class="suggestion-label">Item</div><div class="suggestion-text">Spare head cradle for captains chair (new)</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:21:35</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="eOnLoL2jOuIwzQ1wwgA0"><div class="suggestion-label">Item</div><div class="suggestion-text">Hand control unit for denyer operating table (new)</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:20:17</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="CH1Xl5Sof25cTCT7VbtH"><div class="suggestion-label">Item</div><div class="suggestion-text">Limb protection sleeve 
-arm &amp; leg sizes</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:18:50</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="0JlJSDYFe1DvOjjpdvxr"><div class="suggestion-label">Item</div><div class="suggestion-text">Esmarch bandage (non sterile)</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:17:29</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="BAX7Gvsp6qZmb9m8dQ61"><div class="suggestion-label">Item</div><div class="suggestion-text">Bariatric tourniquet</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:14:38</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="ro8YxHvGpAOxcCJJpr4Y"><div class="suggestion-label">Item</div><div class="suggestion-text">Biers block tourniquet</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 9 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:13:38</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="Ra0MQMrHrrUUEHumJbNZ"><div class="suggestion-label">Item</div><div class="suggestion-text">Lateral bed extenders X 2</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 8 - shelf 6</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:12:51</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="cz80sviBYfotZRMfKRTr"><div class="suggestion-label">Item</div><div class="suggestion-text">Lithoclast unit</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 8 - shelf 5</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:11:00</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="CQ1nEhl4K0ugYITTKZZi"><div class="suggestion-label">Item</div><div class="suggestion-text">Sandbags for patient positioning</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 8 - shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:09:14</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="64AgmQb8rpj0bNAAFLUU"><div class="suggestion-label">Item</div><div class="suggestion-text">Head rings - various types and sizes</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 8 - shelf 3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:08:28</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="exBDsJ4wg4DcHSYZ3wBi"><div class="suggestion-label">Item</div><div class="suggestion-text">SCUD cables</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 8 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:07:29</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="p0FfkDI1JahvYUXhGLi8"><div class="suggestion-label">Item</div><div class="suggestion-text">Gel heel pads</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 8 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 29/04/2026, 13:06:28</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="lFDTUVi8iwwXjARF88DO"><div class="suggestion-label">Item</div><div class="suggestion-text">Pushing catheter</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">40 shelf A</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 14:55:41</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="7FSE0a8CBtPv8NpZkEkD"><div class="suggestion-label">Item</div><div class="suggestion-text">Gel heel supports</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 8 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:44:28</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="UgvG0HRexi1wvWJT08wA"><div class="suggestion-label">Item</div><div class="suggestion-text">Soda line cannisters</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 8 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-rejected">Rejected</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:39:42 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 28/04/2026, 21:04:33</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="ryNjFmuP5JSWzBOY8J4a"><div class="suggestion-label">Item</div><div class="suggestion-text">SOL-L ethanol 70%</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 7 - shelf 5</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:38:36</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="KKnHLINZJTGc5Cl37Hfw"><div class="suggestion-label">Item</div><div class="suggestion-text">Sodium chloride 0.9% 500ml irrigation bottles</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 7 - shelf 3&amp;4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:37:11</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="ctCTH6Gt5sNFsRbS5ohb"><div class="suggestion-label">Item</div><div class="suggestion-text">Sodium chloride 0.9% 2lt irrigation</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 7 - shelf 1&amp;2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:35:30</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="o98dpfMh5Nl5ISgv1Mrn"><div class="suggestion-label">Item</div><div class="suggestion-text">Matrix biofilm remover 5lt</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 6 - shelf 6</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:33:20</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="uTmCVFAYgL87jt90u1EH"><div class="suggestion-label">Item</div><div class="suggestion-text">Water for irrigation bottles 1lt</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 6 - shelf 4&amp;5</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:32:27</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="yLhUNf5TtOzpZV1abA2m"><div class="suggestion-label">Item</div><div class="suggestion-text">Glycine 1.5%  IV fluids 2lt</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 5 - shelf 2&amp;3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:31:01</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="VNJEFCgBohb2Iepc2YvB"><div class="suggestion-label">Item</div><div class="suggestion-text">Water for injection IV fluids 1lt</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 6 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:29:39</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="3KJWexCNuyJWiDN92ytd"><div class="suggestion-label">Item</div><div class="suggestion-text">Medizyme enzymatic detergent 5lt</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 5 - shelf 6</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:28:35</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="9Ub9sN2diymjjBODbvfm"><div class="suggestion-label">Item</div><div class="suggestion-text">Adept IV fluids 1500ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 5 - shelf 5</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:26:21</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="AcQip0TBJPOlRL5YHJlJ"><div class="suggestion-label">Item</div><div class="suggestion-text">Sodium chloride 0.9% IV fluids 100ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 5 - shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:24:30</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="P8FYzQXQ3Hi7JrPbziTt"><div class="suggestion-label">Item</div><div class="suggestion-text">Sodium chloride 0.9% IV fluids 250ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 5- shelf 3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:22:44</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="f5RTelmXgz4Y1htQBllg"><div class="suggestion-label">Item</div><div class="suggestion-text">Sodium chloride 0.9% IV fluids 500ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 5 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:20:53</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="mQpaUQbmesQFIn0fXjeO"><div class="suggestion-label">Item</div><div class="suggestion-text">Sodium chloride 0.9% IV fluids 500ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 5 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:18:30</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="x5njuzbzVhdslvl7QEUr"><div class="suggestion-label">Item</div><div class="suggestion-text">Glucose 4% Sodium chloride 0.18% IV fluids 500ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 5 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:16:16</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="s0K9FweNHypHZVQqP2Us"><div class="suggestion-label">Item</div><div class="suggestion-text">Clinell universal wipes 200's</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 4 - shelf 5</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:13:32</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="5Hong0tu4rRD4FJGD4uK"><div class="suggestion-label">Item</div><div class="suggestion-text">Sodium chloride 0.9% 1lt IV fluid</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 4 - shelf 3&amp;4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:12:31</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="L2ZX4DVuC71TrL6iQ1QT"><div class="suggestion-label">Item</div><div class="suggestion-text">Potassium chloride 1lt IV fluid</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 4 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:10:55</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="5FIY3yRemipWy0sI1b2o"><div class="suggestion-label">Item</div><div class="suggestion-text">Glucose 5*% IV fluids 500ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 4 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-rejected">Rejected</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 13:07:54 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 28/04/2026, 21:05:38</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="0EXhFVh1CH74LIJ5Iwbf"><div class="suggestion-label">Item</div><div class="suggestion-text">Glucose 5% IV fluids 100ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 4 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 11:10:00</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="LO9lreGhbbx1h4oatVng"><div class="suggestion-label">Item</div><div class="suggestion-text">Glucose 10% IV fluids 500ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 4 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 11:08:50</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="wxQy170DrIp6O9is7nLR"><div class="suggestion-label">Item</div><div class="suggestion-text">Clinell sporicidal wipes 25's</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 3 - shelf 6</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 11:07:23</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="QAjXGjMvDcJa9Hfh1mGX"><div class="suggestion-label">Item</div><div class="suggestion-text">Oxivir Tb disinfectant 946ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 3 - shelf 6</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 11:06:11</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="NuuFiQucYHFky309wL63"><div class="suggestion-label">Item</div><div class="suggestion-text">Glucose 4% sodium chloride 0.18%
-1LT</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 3 - shelf 5</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 11:04:54</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="1otznFj6Cds6lc4dyAqx"><div class="suggestion-label">Item</div><div class="suggestion-text">Hartmann's fluid 500ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 3 - shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 11:02:33</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="AxQRhMYHEZ2gBVoIOJTg"><div class="suggestion-label">Item</div><div class="suggestion-text">Hartmann's fluid 1lt</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 3 - shelf 2&amp;3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 11:01:07</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="Q0H6FxcT0u0KUAvXSFd7"><div class="suggestion-label">Item</div><div class="suggestion-text">Gelofusione 500ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 3 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:59:07</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="Zh3X3PJPoYkLXezVOQzm"><div class="suggestion-label">Item</div><div class="suggestion-text">Mannitol/Osmitrol 500ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 3 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:58:19</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="jIyUFJ0xSDuqerckejj1"><div class="suggestion-label">Item</div><div class="suggestion-text">Endure 120 hi handwash 1.2LT</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 2 - shelf 6</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:55:20</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="puqy98lS4pCMdkM0nH4d"><div class="suggestion-label">Item</div><div class="suggestion-text">Moisturising barrier cream 500ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 2 - shelf 5</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:52:43</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="di2hc7ERv03JeBAnj5TE"><div class="suggestion-label">Item</div><div class="suggestion-text">Skin cleanser Microshield 1.5LT
-Chlorhexidine gluconate 2%</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 2 - shelf 5</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:50:47</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="TkCx31Hrehk9lhvsytuZ"><div class="suggestion-label">Item</div><div class="suggestion-text">Bottle pumps - replacement disposable</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 2 - shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:48:23</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="geksmS6MqUg9Xp12k7rb"><div class="suggestion-label">Item</div><div class="suggestion-text">Surgical handwash 500ml
-Providone Iodine 7.5%</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 2 -Shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:47:16</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="ynbVPeqonqHXNu72jSQS"><div class="suggestion-label">Item</div><div class="suggestion-text">Surgical hand scrub-Avagard 500ml
-Chlorhexidine gluconate 4%</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 2 - shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:45:29</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="LIWcnLNe02IuCZKLSsmb"><div class="suggestion-label">Item</div><div class="suggestion-text">Skinwash QV 40g</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 2 shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:42:56</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="cC6lFsU5VoofDCaFpzSV"><div class="suggestion-label">Item</div><div class="suggestion-text">Obstetric cream 50g
-Chlorhexidine gluconate 1%</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 2 shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:41:24</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="Lc6fc4rfMJqTI2L4EnyW"><div class="suggestion-label">Item</div><div class="suggestion-text">Air freshener vanilla 100ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 2 shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:40:21</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="BwHN0MtT21fWnEUbmZfb"><div class="suggestion-label">Item</div><div class="suggestion-text">Hand Gel ethanol 72% 350ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 2 shelf 3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:38:59</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="38EtJvcTXwMMLyAP0AoH"><div class="suggestion-label">Item</div><div class="suggestion-text">Surgi-prepC+pink 100ml
-Chlorhexidine gluconate 2%
-Ethanol 70%</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 2 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:33:51</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="CIczLLMVkJWK8YjGdUwm"><div class="suggestion-label">Item</div><div class="suggestion-text">Surgi-prepC red 100ml
-Chlorhexidine cluconate 0.5%
-Ethanol 70%</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 2 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:30:48</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="gkFbE5RJLdr1sNcPW3IQ"><div class="suggestion-label">Item</div><div class="suggestion-text">Chlorhexidine 0.015%
-cetrimide 0.15% 
-irrigation solution 30ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 2 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:28:31</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="hKKFRgLNw4WHawQjYrUf"><div class="suggestion-label">Item</div><div class="suggestion-text">Logiwipe alcohol wipes packet 100</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 1 shelf 6</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:25:44</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="IoXaAKuUurL2dhq1GCqs"><div class="suggestion-label">Item</div><div class="suggestion-text">Skinman90 handrub ethanol 90% 1LT</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 1 shelf 5</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:24:38</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="IUTCX0TB4EbeFDMoorvX"><div class="suggestion-label">Item</div><div class="suggestion-text">Hydrogen peroxide 3% 100ml</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 1 - shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:22:11</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="09vKe34XG0Bxi32XDUbJ"><div class="suggestion-label">Item</div><div class="suggestion-text">Providone - iodine 3/4 fluid ounce sachet</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 1 shelf 4</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:20:10</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="iNAznVwOUAEryeHnyXIi"><div class="suggestion-label">Item</div><div class="suggestion-text">Providone iodine antiseptic solution 100 ml - 10%</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 1 - shelf 3</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:12:07</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="PmDWeDwsJBnvCwNruvB7"><div class="suggestion-label">Item</div><div class="suggestion-text">Swabsticks large tinted 
-70% isopropyl alcohol
-0.5% chlorhexidine</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 1 - shelf 2</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:10:02</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="3uFM5ozXO32vLhxXUy4K"><div class="suggestion-label">Item</div><div class="suggestion-text">Surgi-prep C pink 30ml
-0.5% chlorhexidine glyconate
-70% ethanol</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room bay 1 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:07:17</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="bkE2GGNurTakZ8iPh29X"><div class="suggestion-label">Item</div><div class="suggestion-text">Soluprep antiseptic swab - large
-2% chlorhexidine glyconate
-70% isopropyl alcohol</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room vay 1 g shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:04:20</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="QPBJK07RAYVlbCRaY7OM"><div class="suggestion-label">Item</div><div class="suggestion-text">Soluprep antiseptic swab - small 2% chlorhexidine glyconate
-70% isopropyl alcohol</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Equipment room - bay 1 - shelf 1</div><div class="suggestion-meta"><span class="suggestion-status-badge status-pending">Pending</span> &nbsp;•&nbsp; Submitted: 28/04/2026, 10:02:16</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="approve">Approve</button><button type="button" class="suggestion-btn-small" data-action="reject">Reject</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div><div class="suggestion-item" data-id="qkcblFi9EjTvVKBppGSi"><div class="suggestion-label">Item</div><div class="suggestion-text">Jag Wire compactor 40 top shelf not scope trolley unless there is 2 types of jag wire  ( coral)</div><div class="suggestion-label">Suggested location</div><div class="suggestion-text">Compactor 40 top shelf</div><div class="suggestion-meta"><span class="suggestion-status-badge status-approved">Approved</span> &nbsp;•&nbsp; Submitted: 24/04/2026, 15:38:48 &nbsp;•&nbsp; Reviewed by anthony.hawkins@health.nsw.gov.au on 01/05/2026, 14:59:57</div><div class="suggestion-actions"><button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button><button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button><button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button></div></div></div>
+            <div class="suggestions-list" id="suggestions-list">
+                <!-- Suggestions populated by Firebase listener -->
+            </div>
         </div>
     </div>
 
@@ -910,11 +593,17 @@ irrigation solution 30ml</div><div class="suggestion-label">Suggested location</
             <p>Please use the same naming style you see in search results when suggesting an item.</p>
 
             <label for="suggest-item">Item to be added/amended</label>
-            <textarea id="suggest-item" placeholder="e.g. ABT Bellovac Drain, Accolade Hip Stem Inserter Stryker, etc."></textarea>
+            <textarea
+                id="suggest-item"
+                placeholder="e.g. ABT Bellovac Drain, Accolade Hip Stem Inserter Stryker, etc."
+            ></textarea>
             <div class="suggestion-error" id="suggest-item-error"></div>
 
             <label for="suggest-location" style="margin-top: 10px;">Correct location of item</label>
-            <textarea id="suggest-location" placeholder="e.g. 36 shelf C, 43 shelf A misc. box, CSSD, K-mart, etc."></textarea>
+            <textarea
+                id="suggest-location"
+                placeholder="e.g. 36 shelf C, 43 shelf A misc. box, CSSD, K-mart, etc."
+            ></textarea>
             <div class="suggestion-error" id="suggest-location-error"></div>
 
             <div class="modal-error" id="suggest-modal-error"></div>
@@ -934,9 +623,9 @@ irrigation solution 30ml</div><div class="suggestion-label">Suggested location</
             <p>Sign in with your admin email and password to review suggestions.</p>
 
             <label for="admin-email-input">Email</label>
-            <input type="email" id="admin-email-input" placeholder="admin@example.com">
+            <input type="email" id="admin-email-input" placeholder="admin@example.com" />
             <label for="admin-password-input" style="margin-top: 10px;">Password</label>
-            <input type="password" id="admin-password-input" placeholder="••••••••">
+            <input type="password" id="admin-password-input" placeholder="••••••••" />
 
             <div class="modal-error" id="admin-login-error"></div>
 
@@ -946,58 +635,7 @@ irrigation solution 30ml</div><div class="suggestion-label">Suggested location</
             </div>
         </div>
     </div>
-    <!-- ═══ OVERFLOW STOCK MODAL ═══ -->
-    <div class="overflow-modal-overlay" id="overflow-modal-overlay">
-      <div class="overflow-modal">
-        <h2>📦 Temporary Stock / Overflow Locations</h2>
-        <p class="overflow-note">Public board — anyone can add, edit or delete entries. Name/initials are required. Entries older than 7 days are highlighted for review.</p>
 
-        <!-- Add form -->
-        <div class="overflow-add-form">
-          <div class="ov-item-wrap">
-            <label for="ov-item">Item name</label>
-            <input type="text" id="ov-item" placeholder="Start typing to search..." autocomplete="off" />
-            <div class="ov-autocomplete-dropdown" id="ov-autocomplete"></div>
-          </div>
-          <div>
-            <label for="ov-qty">Qty</label>
-            <input type="text" id="ov-qty" placeholder="e.g. 3" />
-          </div>
-          <div>
-            <label for="ov-location">Overflow location</label>
-            <input type="text" id="ov-location" placeholder="e.g. Storeroom shelf 2" />
-          </div>
-          <div>
-            <label for="ov-addedby">Your name/initials</label>
-            <input type="text" id="ov-addedby" placeholder="e.g. T. Hawkins" />
-          </div>
-          <button type="button" class="btn-add-overflow" id="ov-add-btn">+ Add Entry</button>
-        </div>
-
-        <!-- Table -->
-        <div class="overflow-table-wrap">
-          <table class="overflow-table">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Qty</th>
-                <th>Overflow Location</th>
-                <th>Date Added/Amended</th>
-                <th>Added/Edited by</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="overflow-tbody">
-              <tr><td colspan="6" class="overflow-empty">Loading entries…</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div style="text-align:right;margin-top:14px;">
-          <button type="button" class="btn-secondary" id="ov-close-btn">Close</button>
-        </div>
-      </div>
-    </div>
     <script>
         // --------------------------------------------
         // Core data and search logic
@@ -2937,7 +2575,7 @@ irrigation solution 30ml</div><div class="suggestion-label">Suggested location</
   ["Purell alcohol hand gel 350ml", "Fluid Room bay 2 shelf 3"],
   ["SUTURE MONOSOFT POLYSORB", "RACK 1"]
         ];
-        let overflowCache = [];
+
         let searchMode = "name";
         let debounceTimer = null;
 
@@ -3106,70 +2744,18 @@ irrigation solution 30ml</div><div class="suggestion-label">Suggested location</
                 (matches.length === 1 ? "" : "s");
             resultsCount.style.display = "block";
 
-                        let html = "";
+            let html = "";
             const displayMatches = matches.slice(0, 100);
             displayMatches.forEach(function (item) {
-                                // Handle overflow-only custom items
-                if (item[1] === "__OVERFLOW__") {
-                    const realName = item[0].replace("__OVERFLOW__", "");
-                    const ovMatches = overflowCache.filter(function(ov) {
-                        return (ov.item || "").toLowerCase() === realName.toLowerCase();
-                    }).sort(function(a, b) {
-                        const aTime = a.dateAmended ? (a.dateAmended.toDate ? a.dateAmended.toDate().getTime() : 0) : 0;
-                        const bTime = b.dateAmended ? (b.dateAmended.toDate ? b.dateAmended.toDate().getTime() : 0) : 0;
-                        return bTime - aTime;
-                    });
-                    html += '<div class="result-item overflow-only">';
-                    html += '<div class="result-name">' + highlightMatch(realName, searchTerm) + '</div>';
-                    html += '<div class="result-overflow">';
-                    html += '<div class="result-overflow-label">📦 Overflow / Temp Stock only — not in main database</div>';
-                    ovMatches.forEach(function(ov) {
-                        const ovDate = ov.dateAmended && ov.dateAmended.toDate
-                            ? ov.dateAmended.toDate().toLocaleString('en-AU', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
-                            : '';
-                        html += '<div class="result-overflow-entry">';
-                        html += '<span class="result-overflow-loc">📍 ' + escapeHtml(ov.location || '') + '</span>';
-                        if (ov.quantity) html += ' &nbsp;·&nbsp; Qty: <strong>' + escapeHtml(ov.quantity) + '</strong>';
-                        if (ov.addedBy) html += ' &nbsp;·&nbsp; ' + escapeHtml(ov.addedBy);
-                        if (ovDate) html += ' &nbsp;·&nbsp; ' + escapeHtml(ovDate);
-                        html += '</div>';
-                    });
-                    html += '</div></div>';
-                    return;
-                }
-                const itemNameLower = (item[0] || "").toLowerCase();
-                // Find matching overflow entries (case-insensitive partial match)
-                const ovMatches = overflowCache.filter(function(ov) {
-                    return (ov.item || "").toLowerCase().includes(itemNameLower) ||
-                           itemNameLower.includes((ov.item || "").toLowerCase());
-                }).sort(function(a, b) {
-                    const aTime = a.dateAmended ? (a.dateAmended.toDate ? a.dateAmended.toDate().getTime() : 0) : 0;
-                    const bTime = b.dateAmended ? (b.dateAmended.toDate ? b.dateAmended.toDate().getTime() : 0) : 0;
-                    return bTime - aTime;
-                });
-
-                html += '<div class="result-item">';
-                html += '<div class="result-name">' + highlightMatch(item[0], searchTerm) + '</div>';
-                html += '<div class="result-location">' + highlightMatch(item[1], searchTerm) + '</div>';
-
-                if (ovMatches.length > 0) {
-                    html += '<div class="result-overflow">';
-                    html += '<div class="result-overflow-label">📦 Overflow / Temp Stock</div>';
-                    ovMatches.forEach(function(ov) {
-                        const ovDate = ov.dateAmended && ov.dateAmended.toDate
-                            ? ov.dateAmended.toDate().toLocaleString('en-AU', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
-                            : '';
-                        html += '<div class="result-overflow-entry">';
-                        html += '<span class="result-overflow-loc">📍 ' + escapeHtml(ov.location || '') + '</span>';
-                        if (ov.quantity) html += ' &nbsp;·&nbsp; Qty: <strong>' + escapeHtml(ov.quantity) + '</strong>';
-                        if (ov.addedBy) html += ' &nbsp;·&nbsp; ' + escapeHtml(ov.addedBy);
-                        if (ovDate) html += ' &nbsp;·&nbsp; ' + escapeHtml(ovDate);
-                        html += '</div>';
-                    });
-                    html += '</div>';
-                }
-
-                html += '</div>'; // end .result-item
+                html +=
+                    '<div class="result-item">' +
+                    '<div class="result-name">' +
+                    highlightMatch(item[0], searchTerm) +
+                    "</div>" +
+                    '<div class="result-location">' +
+                    highlightMatch(item[1], searchTerm) +
+                    "</div>" +
+                    "</div>";
             });
 
             if (matches.length > 100) {
@@ -3190,22 +2776,7 @@ irrigation solution 30ml</div><div class="suggestion-label">Suggested location</
                 resultsCount.style.display = "none";
                 return;
             }
-        // ── Live overflow cache: keeps overflowCache in sync with Firestore ──
-        function startOverflowCache() {
-            db.collection("overflowStock")
-                .orderBy("dateAmended", "desc")
-                .onSnapshot(function(snapshot) {
-                    overflowCache = [];
-                    snapshot.forEach(function(doc) {
-                        overflowCache.push(Object.assign({ _id: doc.id }, doc.data()));
-                    });
-                    // Re-render search results if there's an active search
-                    if (input.value.trim()) performSearch();
-                }, function(err) {
-                    console.warn("Overflow cache error:", err);
-                });
-        }
-        startOverflowCache();
+
             const searchTerm = term.toLowerCase();
             let matches;
 
@@ -3231,21 +2802,6 @@ irrigation solution 30ml</div><div class="suggestion-label">Suggested location</
                 });
             }
 
-            // Add custom overflow-only items (not in main DB) that match the search
-            if (searchMode === "name" || searchMode === "both") {
-                overflowCache.forEach(function(ov) {
-                    const ovName = (ov.item || "").toLowerCase();
-                    if (!ovName) return;
-                    // Only add if NOT already matched by the main DB
-                    const alreadyMatched = matches.some(function(m) {
-                        return (m[0] || "").toLowerCase() === ovName;
-                    });
-                    if (!alreadyMatched && ovName.includes(searchTerm)) {
-                        // Use a special marker so displayResults knows it's overflow-only
-                        matches.push(["__OVERFLOW__" + ov.item, "__OVERFLOW__"]);
-                    }
-                });
-            }
             displayResults(matches, term);
         }
 
@@ -3264,231 +2820,14 @@ irrigation solution 30ml</div><div class="suggestion-label">Suggested location</
         window.addEventListener("load", function () {
             input.focus();
         });
-            // ════════════════════════════════════════════
-        // OVERFLOW STOCK BOARD
-        // ════════════════════════════════════════════
+    </script>
 
-        const overflowOverlay = document.getElementById('overflow-modal-overlay');
-        const openOverflowBtn = document.getElementById('open-overflow-btn');
-        const ovCloseBtn = document.getElementById('ov-close-btn');
-        const ovAddBtn = document.getElementById('ov-add-btn');
-        const ovTbody = document.getElementById('overflow-tbody');
-        const ovItemInput = document.getElementById('ov-item');
-        const ovAutocomplete = document.getElementById('ov-autocomplete');
+    <!-- Firebase SDKs (v8.x, global namespace `firebase`) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-        let overflowUnsubscribe = null;
-
-        // ── Open / Close ──
-        openOverflowBtn.addEventListener('click', function() {
-            overflowOverlay.style.display = 'flex';
-            subscribeOverflow();
-            ovItemInput.focus();
-        });
-        function closeOverflowModal() {
-            overflowOverlay.style.display = 'none';
-            ovAutocomplete.classList.remove('open');
-            if (overflowUnsubscribe) { overflowUnsubscribe(); overflowUnsubscribe = null; }
-        }
-        ovCloseBtn.addEventListener('click', closeOverflowModal);
-        overflowOverlay.addEventListener('click', function(e) {
-            if (e.target === overflowOverlay) closeOverflowModal();
-        });
-
-        // ── Item autocomplete ──
-        ovItemInput.addEventListener('input', function() {
-            const q = ovItemInput.value.trim().toLowerCase();
-            ovAutocomplete.innerHTML = '';
-            if (!q) { ovAutocomplete.classList.remove('open'); return; }
-
-            const dbMatches = data.filter(function(item) {
-                return item[0] && item[0].toLowerCase().includes(q);
-            }).sort(function(a, b) {
-                const aS = a[0].toLowerCase().startsWith(q);
-                const bS = b[0].toLowerCase().startsWith(q);
-                if (aS && !bS) return -1;
-                if (!aS && bS) return 1;
-                return a[0].localeCompare(b[0]);
-            }).slice(0, 15);
-
-            dbMatches.forEach(function(item) {
-                const div = document.createElement('div');
-                div.className = 'ov-ac-item';
-                div.textContent = item[0];
-                div.addEventListener('mousedown', function(e) {
-                    e.preventDefault();
-                    ovItemInput.value = item[0];
-                    ovAutocomplete.classList.remove('open');
-                    document.getElementById('ov-qty').focus();
-                });
-                ovAutocomplete.appendChild(div);
-            });
-
-            const customDiv = document.createElement('div');
-            customDiv.className = 'ov-ac-item ov-custom-add';
-            customDiv.textContent = '➕ Add "' + ovItemInput.value.trim() + '" as custom item';
-            customDiv.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-                ovAutocomplete.classList.remove('open');
-                document.getElementById('ov-qty').focus();
-            });
-            ovAutocomplete.appendChild(customDiv);
-            ovAutocomplete.classList.add('open');
-        });
-
-        ovItemInput.addEventListener('blur', function() {
-            setTimeout(function() { ovAutocomplete.classList.remove('open'); }, 150);
-        });
-        ovItemInput.addEventListener('focus', function() {
-            if (ovItemInput.value.trim()) ovItemInput.dispatchEvent(new Event('input'));
-        });
-
-        // ── Helpers ──
-        function formatOvDate(ts) {
-            if (!ts) return '';
-            const d = ts.toDate ? ts.toDate() : new Date(ts);
-            return d.toLocaleString('en-AU', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-        }
-        function isStale(ts) {
-            if (!ts) return false;
-            const d = ts.toDate ? ts.toDate() : new Date(ts);
-            return (Date.now() - d.getTime()) > 7 * 24 * 60 * 60 * 1000;
-        }
-
-        // ── Live listener (modal only) ──
-        function subscribeOverflow() {
-            if (overflowUnsubscribe) return;
-            overflowUnsubscribe = db.collection('overflowStock')
-                .orderBy('dateAmended', 'desc')
-                .onSnapshot(function(snapshot) {
-                    if (snapshot.empty) {
-                        ovTbody.innerHTML = '<tr><td colspan="6" class="overflow-empty">No entries yet. Add one above.</td></tr>';
-                        return;
-                    }
-                    let html = '';
-                    snapshot.forEach(function(doc) {
-                        const d = doc.data();
-                        const stale = isStale(d.dateAmended);
-                        const staleFlag = stale ? '<span class="stale-flag">⚑ Over 7 days — review needed</span>' : '';
-                        html += '<tr class="' + (stale ? 'stale' : '') + '" data-id="' + doc.id + '">';
-                        html += '<td class="ov-cell-item">' + escapeHtml(d.item || '') + '</td>';
-                        html += '<td class="ov-cell-qty">' + escapeHtml(d.quantity || '') + '</td>';
-                        html += '<td class="ov-cell-loc">' + escapeHtml(d.location || '') + '</td>';
-                        html += '<td>' + escapeHtml(formatOvDate(d.dateAmended)) + staleFlag + '</td>';
-                        html += '<td>' + escapeHtml(d.addedBy || '') + '</td>';
-                        html += '<td><div class="overflow-action-btns">';
-                        html += '<button class="btn-ov-edit" data-ovaction="edit">Edit</button>';
-                        html += '<button class="btn-ov-delete" data-ovaction="delete">Delete</button>';
-                        html += '</div></td></tr>';
-                    });
-                    ovTbody.innerHTML = html;
-                }, function(err) {
-                    console.error('Overflow snapshot error', err);
-                    ovTbody.innerHTML = '<tr><td colspan="6" class="overflow-empty">Error loading entries. Check console.</td></tr>';
-                });
-        }
-
-        // ── Add entry ──
-        ovAddBtn.addEventListener('click', function() {
-            const item = ovItemInput.value.trim();
-            const qty = document.getElementById('ov-qty').value.trim();
-            const loc = document.getElementById('ov-location').value.trim();
-            let addedBy = document.getElementById('ov-addedby').value.trim();
-
-            if (!item) { alert('Please enter an item name.'); ovItemInput.focus(); return; }
-            if (!loc) { alert('Please enter an overflow location.'); document.getElementById('ov-location').focus(); return; }
-            if (!addedBy) {
-                addedBy = prompt('Please enter your name or initials before posting:');
-                if (!addedBy || !addedBy.trim()) { alert('Name/initials are required.'); return; }
-                addedBy = addedBy.trim();
-                document.getElementById('ov-addedby').value = addedBy;
-            }
-
-            db.collection('overflowStock').add({
-                item: item,
-                quantity: qty,
-                location: loc,
-                addedBy: addedBy,
-                dateAmended: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(function() {
-                ovItemInput.value = '';
-                document.getElementById('ov-qty').value = '';
-                document.getElementById('ov-location').value = '';
-                ovAutocomplete.classList.remove('open');
-            }).catch(function(err) {
-                alert('Failed to add entry. Please try again.');
-                console.error('Overflow add error:', err);
-            });
-        });
-
-        // ── Edit / Delete delegation ──
-        ovTbody.addEventListener('click', function(e) {
-            const btn = e.target.closest('[data-ovaction]');
-            if (!btn) return;
-            const action = btn.getAttribute('data-ovaction');
-            const row = btn.closest('tr');
-            const docId = row.getAttribute('data-id');
-
-            if (action === 'delete') {
-                if (!confirm('Delete this entry? This cannot be undone.')) return;
-                db.collection('overflowStock').doc(docId).delete()
-                    .catch(function(err) { alert('Delete failed.'); console.error(err); });
-                return;
-            }
-
-            if (action === 'edit') {
-                const cellItem = row.querySelector('.ov-cell-item');
-                const cellQty = row.querySelector('.ov-cell-qty');
-                const cellLoc = row.querySelector('.ov-cell-loc');
-                const origItem = cellItem.textContent;
-                const origQty = cellQty.textContent;
-                const origLoc = cellLoc.textContent;
-
-                cellItem.innerHTML = '<input class="inline-edit" value="' + escapeHtml(origItem) + '">';
-                cellQty.innerHTML = '<input class="inline-edit" value="' + escapeHtml(origQty) + '">';
-                cellLoc.innerHTML = '<input class="inline-edit" value="' + escapeHtml(origLoc) + '">';
-
-                row.querySelector('.overflow-action-btns').innerHTML =
-                    '<button class="btn-ov-save" data-ovaction="save">Save</button>' +
-                    '<button class="btn-ov-cancel" data-ovaction="cancel-edit"' +
-                    ' data-item="' + escapeHtml(origItem) + '"' +
-                    ' data-qty="' + escapeHtml(origQty) + '"' +
-                    ' data-loc="' + escapeHtml(origLoc) + '">Cancel</button>';
-                cellItem.querySelector('input').focus();
-                return;
-            }
-
-            if (action === 'cancel-edit') {
-                row.querySelector('.ov-cell-item').textContent = btn.getAttribute('data-item');
-                row.querySelector('.ov-cell-qty').textContent = btn.getAttribute('data-qty');
-                row.querySelector('.ov-cell-loc').textContent = btn.getAttribute('data-loc');
-                row.querySelector('.overflow-action-btns').innerHTML =
-                    '<button class="btn-ov-edit" data-ovaction="edit">Edit</button>' +
-                    '<button class="btn-ov-delete" data-ovaction="delete">Delete</button>';
-                return;
-            }
-
-            if (action === 'save') {
-                const newItem = row.querySelector('.ov-cell-item input').value.trim();
-                const newQty = row.querySelector('.ov-cell-qty input').value.trim();
-                const newLoc = row.querySelector('.ov-cell-loc input').value.trim();
-
-                if (!newItem) { alert('Item name cannot be empty.'); return; }
-                if (!newLoc) { alert('Location cannot be empty.'); return; }
-
-                let editorName = prompt('Enter your name or initials to save changes:');
-                if (!editorName || !editorName.trim()) { alert('Name/initials are required.'); return; }
-
-                db.collection('overflowStock').doc(docId).update({
-                    item: newItem,
-                    quantity: newQty,
-                    location: newLoc,
-                    addedBy: editorName.trim(),
-                    dateAmended: firebase.firestore.FieldValue.serverTimestamp()
-                }).catch(function(err) { alert('Save failed.'); console.error(err); });
-                return;
-            }
-        });
-
+    <script>
         // --------------------------------------------
         // Firebase initialization
         // --------------------------------------------
@@ -3828,47 +3167,50 @@ irrigation solution 30ml</div><div class="suggestion-label">Suggested location</
                                 }
                             }
 
-html += '<div class="suggestion-item" data-id="' + doc.id + '">';
+                            html +=
+                                '<div class="suggestion-item" data-id="' +
+                                doc.id +
+                                '">' +
+                                '<div class="suggestion-label">Item</div>' +
+                                '<div class="suggestion-text">' +
+                                escapeHtml(itemText) +
+                                "</div>" +
+                                '<div class="suggestion-label">Suggested location</div>' +
+                                '<div class="suggestion-text">' +
+                                escapeHtml(correctLocation) +
+                                "</div>" +
+                                '<div class="suggestion-meta">' +
+                                '<span class="suggestion-status-badge ' +
+                                statusClass +
+                                '">' +
+                                statusLabel +
+                                "</span>" +
+                                " &nbsp;•&nbsp; Submitted: " +
+                                escapeHtml(createdStr) +
+                                (reviewedStr
+                                    ? " &nbsp;•&nbsp; " +
+                                      escapeHtml(
+                                          reviewedStr
+                                      )
+                                    : "") +
+                                "</div>" +
+                                '<div class="suggestion-actions">';
 
-// --- Display view (shown by default) ---
-html += '<div class="suggestion-display">';
-html += '<div class="suggestion-label">Item</div>';
-html += '<div class="suggestion-text">' + escapeHtml(itemText) + '</div>';
-html += '<div class="suggestion-label">Suggested location</div>';
-html += '<div class="suggestion-text">' + escapeHtml(correctLocation) + '</div>';
-html += '<div class="suggestion-meta">';
-html += '<span class="suggestion-status-badge ' + statusClass + '">' + statusLabel + '</span>';
-html += ' &nbsp;•&nbsp; Submitted: ' + escapeHtml(createdStr);
-if (reviewedStr) { html += ' &nbsp;•&nbsp; ' + escapeHtml(reviewedStr); }
-html += '</div>';
-html += '</div>'; // end .suggestion-display
+                            if (status === "pending") {
+                                html +=
+                                    '<button type="button" class="suggestion-btn-small" data-action="approve">Approve</button>' +
+                                    '<button type="button" class="suggestion-btn-small" data-action="reject">Reject</button>';
+                            } else {
+                                html +=
+                                    '<button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button>';
+                            }
 
-// --- Edit view (hidden by default) ---
-html += '<div class="suggestion-edit-area">';
-html += '<label style="font-size:11px;font-weight:600;color:#2c3e50;display:block;margin-bottom:3px;">Item</label>';
-html += '<textarea class="edit-item-text">' + escapeHtml(itemText) + '</textarea>';
-html += '<label style="font-size:11px;font-weight:600;color:#2c3e50;display:block;margin-bottom:3px;">Suggested location</label>';
-html += '<textarea class="edit-location-text">' + escapeHtml(correctLocation) + '</textarea>';
-html += '<div style="margin-top:4px;">';
-html += '<button type="button" class="btn-save-edit" data-action="save-edit">Save</button>';
-html += '<button type="button" class="btn-cancel-edit" data-action="cancel-edit">Cancel</button>';
-html += '</div></div>'; // end .suggestion-edit-area
+                            html +=
+                                '<button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button>';
+                            
+                            html += `<button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button>`;
 
-// --- Action buttons ---
-html += '<div class="suggestion-actions">';
-
-if (status === "pending") {
-    html += '<button type="button" class="suggestion-btn-small" data-action="approve">Approve</button>';
-    html += '<button type="button" class="suggestion-btn-small" data-action="reject">Reject</button>';
-} else {
-    html += '<button type="button" class="suggestion-btn-small" data-action="pending">Mark pending again</button>';
-}
-
-html += '<button type="button" class="suggestion-btn-small" data-action="edit">Edit</button>';
-html += '<button type="button" class="suggestion-btn-small" data-action="copy">Copy for code</button>';
-html += '<button type="button" class="suggestion-btn-small" data-action="delete" style="color:#c62828;border-color:#f5c6cb;">Delete</button>';
-html += '</div>'; // end .suggestion-actions
-html += '</div>'; // end .suggestion-item
+                            html += "</div></div>";
                         });
 
                         suggestionsList.innerHTML = html;
@@ -3913,39 +3255,7 @@ html += '</div>'; // end .suggestion-item
                 allTexts[0]?.textContent || "";
             const correctLocation =
                 allTexts[1]?.textContent || "";
-            if (action === "edit") {
-                itemEl.classList.add("editing");
-                itemEl.querySelector(".edit-item-text").focus();
-                return;
-            }
 
-            if (action === "cancel-edit") {
-                itemEl.classList.remove("editing");
-                return;
-            }
-
-            if (action === "save-edit") {
-                if (!auth.currentUser) {
-                    alert("You must be logged in as admin to save edits.");
-                    return;
-                }
-                const newItem = itemEl.querySelector(".edit-item-text").value.trim();
-                const newLoc = itemEl.querySelector(".edit-location-text").value.trim();
-                if (!newItem || !newLoc) {
-                    alert("Item and location cannot be empty.");
-                    return;
-                }
-                db.collection("locationSuggestions").doc(docId).update({
-                    itemText: newItem,
-                    correctLocation: newLoc
-                }).then(function() {
-                    itemEl.classList.remove("editing");
-                }).catch(function(err) {
-                    alert("Failed to save edit. Please try again.");
-                    console.error("Edit save error:", err);
-                });
-                return;
-            }
             if (action === "copy") {
                 const snippet =
                     '["' +
@@ -4044,5 +3354,5 @@ if (action === 'delete') {
             }
         });
     </script>
-    </body>
+</body>
 </html>
