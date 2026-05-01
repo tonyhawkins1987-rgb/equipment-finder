@@ -768,12 +768,16 @@
             <button class="mode-btn" onclick="setSearchMode('both')" id="mode-both">Search Both</button>
         </div>
 
+                <!-- Dummy fields: prevent Chrome from autofilling the search box with password data -->
+        <input type="text" style="display:none;" aria-hidden="true" tabindex="-1">
+        <input type="password" style="display:none;" aria-hidden="true" tabindex="-1">
         <div class="search-container">
             <label for="search" id="search-label">Equipment Name</label>
             <input
                 id="search"
+                name="equipment-search"
+                autocomplete="new-password"
                 placeholder="Type search query here"
-                autocomplete="search"
             />
         </div>
 
