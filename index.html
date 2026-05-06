@@ -5,6 +5,119 @@
     <meta charset="UTF-8" />
     <title>Equipment Location Finder</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    /* ── Weekly Sync panel ── */
+.weekly-sync-section {
+    margin-top: 28px;
+    border-top: 2px solid #e0e0e0;
+    padding-top: 18px;
+}
+.weekly-sync-section h3 {
+    font-size: 15px;
+    color: #2c3e50;
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+.sync-counts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.sync-count-chip {
+    background: #f0f4ff;
+    border: 1px solid #c5cae9;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #3949ab;
+    font-weight: 600;
+    text-align: center;
+}
+.sync-count-chip span {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a237e;
+}
+.sync-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.sync-btn {
+    padding: 7px 14px;
+    border-radius: 18px;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    color: #555;
+}
+.sync-btn:hover { border-color: #667eea; background: #f0f4ff; }
+.sync-btn.danger { border-color: #f5c6cb; color: #c62828; }
+.sync-btn.danger:hover { background: #fff0f0; border-color: #c62828; }
+.sync-last-cleared {
+    font-size: 11px;
+    color: #9e9e9e;
+    margin-top: 6px;
+}
+
+/* ── Admin card action buttons ── */
+.admin-card-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+.admin-card-btn {
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.2s;
+    color: #555;
+}
+.admin-card-btn:hover { border-color: #667eea; background: #f0f4ff; }
+.admin-card-btn.btn-delete { color: #c62828; border-color: #f5c6cb; }
+.admin-card-btn.btn-delete:hover { background: #fff0f0; border-color: #c62828; }
+.admin-card-btn.btn-rename { color: #6a1b9a; border-color: #ce93d8; }
+.admin-card-btn.btn-rename:hover { background: #f3e5f5; border-color: #6a1b9a; }
+
+/* ── Suggestion modal autocomplete ── */
+#suggest-item-dropdown {
+    width: 100%;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 2px solid #667eea;
+    border-radius: 10px;
+    background: #fff;
+    margin-top: 4px;
+    box-shadow: 0 4px 16px rgba(102,126,234,0.13);
+    display: none;
+    position: relative;
+    z-index: 10;
+}
+#suggest-item-dropdown .sug-drop-item {
+    padding: 9px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+#suggest-item-dropdown .sug-drop-item:last-child { border-bottom: none; }
+#suggest-item-dropdown .sug-drop-item:hover { background: #f0f4ff; }
+#suggest-item-dropdown .sug-drop-item .sug-drop-loc {
+    font-size: 11px;
+    color: #667eea;
+    margin-top: 2px;
+}
+#suggest-corrected-name-row {
+    display: none;
+    margin-top: 10px;
+}
     <style>
         * {
             margin: 0;
@@ -882,30 +995,71 @@
             </div>
         </div>
 
-        <div class="admin-panel" id="admin-panel">
+<div class="admin-panel" id="admin-panel">
             <h2>Admin Suggestions Panel</h2>
             <div class="admin-panel-email" id="admin-email"></div>
             <div class="admin-panel-note">
-                This panel is for reviewing items submitted via the “Report missing/wrong item location” button.
+                This panel is for reviewing items submitted via the "Report missing/wrong item location" button.
             </div>
             <div class="suggestions-list" id="suggestions-list">
                 <!-- Suggestions populated by Firebase listener -->
             </div>
+
+            <!-- ── Weekly Sync Section ── -->
+            <div class="weekly-sync-section">
+                <h3>📦 Weekly Sync</h3>
+                <div class="sync-counts">
+                    <div class="sync-count-chip">
+                        <span id="sync-count-location">0</span>
+                        Location Changes
+                    </div>
+                    <div class="sync-count-chip">
+                        <span id="sync-count-name">0</span>
+                        Name Corrections
+                    </div>
+                    <div class="sync-count-chip">
+                        <span id="sync-count-deleted">0</span>
+                        Deletions
+                    </div>
+                    <div class="sync-count-chip">
+                        <span id="sync-count-total">0</span>
+                        Total Overrides
+                    </div>
+                </div>
+                <div class="sync-actions">
+                    <button type="button" class="sync-btn" id="sync-download-btn">⬇ Download Updated HTML</button>
+                    <button type="button" class="sync-btn" id="sync-summary-btn">📋 View Change Summary</button>
+                    <button type="button" class="sync-btn danger" id="sync-clear-btn">🗑 Clear Overrides</button>
+                </div>
+                <div class="sync-last-cleared" id="sync-last-cleared"></div>
+            </div>
         </div>
-    </div>
 
     <!-- Suggestion modal -->
-    <div class="modal-overlay" id="suggestion-modal-overlay">
+<div class="modal-overlay" id="suggestion-modal-overlay">
         <div class="modal">
             <h2>Report incorrect location or add a new item</h2>
             <p>Please use the same naming style you see in search results when suggesting an item.</p>
 
             <label for="suggest-item">Item to be added/amended</label>
-            <textarea
+            <input
+                type="text"
                 id="suggest-item"
                 placeholder="e.g. ABT Bellovac Drain, Accolade Hip Stem Inserter Stryker, etc."
-            ></textarea>
+                autocomplete="off"
+            />
+            <div id="suggest-item-dropdown"></div>
             <div class="suggestion-error" id="suggest-item-error"></div>
+
+            <div id="suggest-corrected-name-row">
+                <label for="suggest-corrected-name">Suggested corrected name (optional)</label>
+                <input
+                    type="text"
+                    id="suggest-corrected-name"
+                    placeholder="Leave blank if the name is correct"
+                    autocomplete="off"
+                />
+            </div>
 
             <label for="suggest-location" style="margin-top: 10px;">Correct location of item</label>
             <textarea
@@ -945,6 +1099,35 @@
     </div>
 
     <script>
+    /*
+ * ============================================================
+ * FIRESTORE SECURITY RULES — paste into Firebase Console
+ * ============================================================
+ *
+ * rules_version = '2';
+ * service cloud.firestore {
+ *   match /databases/{database}/documents {
+ *
+ *     // locationOverrides: anyone can read, only authenticated users can write
+ *     match /locationOverrides/{docId} {
+ *       allow read: if true;
+ *       allow write: if request.auth != null;
+ *     }
+ *
+ *     // locationSuggestions: anyone can create (submit), only authenticated can read/update/delete
+ *     match /locationSuggestions/{docId} {
+ *       allow create: if true;
+ *       allow read, update, delete: if request.auth != null;
+ *     }
+ *
+ *     // overflowStock: anyone can read and write
+ *     match /overflowStock/{docId} {
+ *       allow read, write: if true;
+ *     }
+ *   }
+ * }
+ * ============================================================
+ */
         // --------------------------------------------
         // Core data and search logic
         // --------------------------------------------
@@ -2882,6 +3065,57 @@
   ["GIA STAPLER & RELOADS", "41-E"],
   ["Purell alcohol hand gel 350ml", "Fluid Room bay 2 shelf 3"],
   ["SUTURE MONOSOFT POLYSORB", "RACK 1"]
+  ["POWER PORT 8F ref:870800", "45-shelf A"],
+  ["TRI STAPLE 30mm-45mm-60mm", "54-shelf D"],
+  ["PEG TUBE KIT ref:9640-20", "54-shelf E"],
+  ["ENDO GIA ULTRA 12mm ref:EGIAUSTND", "54-shelf D"],
+  ["Epic 5MM x 35cm Atraumatic Grasper ref:C4130", "54-shelf D"],
+  ["Epic 5mm x 45cm Atraumatic Grasper ref:C4140", "54-shelf D"],
+  ["Pop BLUNT CHERRY DISSECTOR", "54-shelf D"],
+  ["ABSORBERTACK 5MM ref: ABSTACK30X", "54-shelf D"],
+  ["ANTI FOG", "54-END SHELF LOW"],
+  ["LIGASURE ATLAS 10mm 37cm ref : LS1037", "54-shelf C"],
+  ["CA500 universal clip ref: CA500", "54-shelf C"],
+  ["UNIVERSAL 5 mm ENDO CATCH", "54-shelf C"],
+  ["BRAUN COMBI ADTEC", "54-shelf C"],
+  ["BRAUN COMBI CORD ref:GK291SU", "54-END SHELF"],
+  ["LIGASURE MARYLAND 5MM 44cm ref: LF1945", "54-shelf B"],
+  ["LIGASURE MARYLAND 5mm 37cm ref: LF1937", "54-shelf B"],
+  ["ENDO CATCH II 15mm", "54-shelf B"],
+  ["ENDO CATCH GOLD 10mm", "54-shelf B"],
+  ["LIGASURE BLUNT TIP 5MM- 44cm ref: LF1844", "54-shelf A"],
+  ["LIGASURE BLUNT TIP ref: LF1837", "54-shelf A"],
+  ["ENDOSHEARS 5MM", "54-shelf A"],
+  ["PDS LOOPS ref: EZ10C", "54-shelf A"],
+  ["VICRYL ENDOLOOPS ref: EJ10C", "54-shelf A"],
+  ["30x8 COMBINDE", "45-shelf E"],
+  ["20 x 20 COMBINED", "45-shelf E"],
+  ["STERILE FOAM", "45-shelf E"],
+  ["MELOLIN / INTERPOSE DRESSING", "45-shelf C"],
+  ["COMFEEL DRESSING DIFFERENT SIZES", "45-shelf C"],
+  ["STERI STRIPS", "45-shelf C"],
+  ["ALLEVYN DRESSINGS", "45-shelf B"],
+  ["PREVENA PLUS DRESSING", "45-shelf A"],
+  ["PICO 7", "45-shelf A"],
+  ["PREVENA 20CM", "45-shelf A"],
+  ["KNEE PACKS", "40-shelf E"],
+  ["HIP PACKS", "40-shelf D"],
+  ["KNEE ATHROSCOPIC PACKS", "40-shelf C"],
+  ["SHOULDER PACK", "40-shelf B"],
+  ["UNIVERSAL MAJORS DRAPES", "29-shelf A"],
+  ["NEEDLE MATS", "27-shelf C"],
+  ["SMALL BOWLS", "27-shelf D"],
+  ["YELLOW KIDNEY DISHES", "27-shelf C"],
+  ["LARGE BOWLS", "27-shelf A"],
+  ["LITHOTOMY DRAPE", "28-shelves D-E"],
+  ["UNDER BUTTOCKS DRAPE", "28-shelf D"],
+  ["NEPTUNE SMOKE EVECUATOR", "24-shelf E"],
+  ["LIGHTS HANDLES", "27-shelf C-D"],
+  ["CATHETER PACKS", "28-shelf C"],
+  ["SMOKE EVAC DIATHERMY (VALLEY LAB)", "27-shelf E"],
+  ["CAESAREAN PACKS", "42-shelf E"],
+  ["MAJOR PACKS", "42-shelves A-B-C-D"],
+  ["MINOR PACKS", "41 all shelves"],
         ];
 
         let searchMode = "name";
@@ -3021,7 +3255,25 @@
             );
         }
 
-        function displayResults(matches, searchTerm) {
+function displayResults(matches, searchTerm) {
+            // Apply locationOverrides: replace location/name, hide deleted
+            const overrides = window._locationOverrides || {};
+            matches = matches.filter(function(item) {
+                const key = (item[0] || "").toLowerCase();
+                if (overrides[key] && overrides[key].deleted) return false;
+                return true;
+            }).map(function(item) {
+                const key = (item[0] || "").toLowerCase();
+                if (overrides[key]) {
+                    const ov = overrides[key];
+                    return [
+                        ov.correctedName || item[0],
+                        ov.newLocation || item[1]
+                    ];
+                }
+                return item;
+            });
+
             if (!matches || matches.length === 0) {
                 resultsDiv.innerHTML =
                     '<div class="no-results">No equipment found matching ' +
@@ -3029,6 +3281,90 @@
                 resultsCount.style.display = "none";
                 return;
             }
+
+            const searchLower = (searchTerm || "").toLowerCase();
+            matches.sort(function (a, b) {
+                const aName = (a[0] || "").toLowerCase();
+                const bName = (b[0] || "").toLowerCase();
+                const aStarts = searchLower && aName.startsWith(searchLower);
+                const bStarts = searchLower && bName.startsWith(searchLower);
+                if (aStarts && !bStarts) return -1;
+                if (!aStarts && bStarts) return 1;
+                return aName.localeCompare(bName);
+            });
+
+            resultsCount.textContent = "Found " + matches.length + " item" + (matches.length === 1 ? "" : "s");
+            resultsCount.style.display = "block";
+
+            let html = "";
+            const displayMatches = matches.slice(0, 100);
+            const isAdmin = !!(auth && auth.currentUser);
+
+            displayMatches.forEach(function (item) {
+                const itemNameLower = (item[0] || "").toLowerCase();
+                const ovMatches = window._overflowDocs ? window._overflowDocs.filter(function (doc) {
+                    return (doc.data().item || "").toLowerCase().includes(itemNameLower) ||
+                           itemNameLower.includes((doc.data().item || "").toLowerCase());
+                }) : [];
+
+                let ovHtml = "";
+                if (ovMatches.length > 0) {
+                    ovHtml = '<div class="overflow-result-badge">' +
+                        '<div class="overflow-result-badge-header">📦 Overflow / Temp Stock</div>';
+                    ovMatches.slice(0, 3).forEach(function (doc) {
+                        var d = doc.data();
+                        var ts = d.updatedAt && d.updatedAt.toDate ? d.updatedAt.toDate() : null;
+                        var dateStr = ts ? padTwo(ts.getDate()) + "/" + padTwo(ts.getMonth()+1) + "/" + ts.getFullYear() : "Unknown date";
+                        ovHtml += '<div class="overflow-result-entry">📍 ' + escapeHtml(d.loc || "") +
+                            (d.qty ? " &nbsp;|&nbsp; Qty: " + escapeHtml(d.qty) : "") +
+                            " &nbsp;|&nbsp; " + escapeHtml(d.by || "") +
+                            " &nbsp;|&nbsp; " + dateStr + "</div>";
+                    });
+                    ovHtml += "</div>";
+                }
+
+                const adminBtns = isAdmin
+                    ? '<div class="admin-card-actions">' +
+                      '<button class="admin-card-btn btn-delete" data-card-action="delete" data-item="' + escapeHtml(item[0]) + '" data-loc="' + escapeHtml(item[1]) + '">🗑 Delete</button>' +
+                      '<button class="admin-card-btn" data-card-action="edit-location" data-item="' + escapeHtml(item[0]) + '" data-loc="' + escapeHtml(item[1]) + '">📍 Edit Location</button>' +
+                      '<button class="admin-card-btn btn-rename" data-card-action="rename" data-item="' + escapeHtml(item[0]) + '" data-loc="' + escapeHtml(item[1]) + '">✏️ Rename Item</button>' +
+                      '</div>'
+                    : "";
+
+                html += '<div class="result-item">' +
+                    '<div class="result-name">' + highlightMatch(item[0], searchTerm) + "</div>" +
+                    '<div class="result-location">' + highlightMatch(item[1], searchTerm) + "</div>" +
+                    ovHtml +
+                    adminBtns +
+                    "</div>";
+            });
+
+            if (window._overflowDocs) {
+                const mainNames = data.map(function(d){ return (d[0]||"").toLowerCase(); });
+                window._overflowDocs.forEach(function (doc) {
+                    var d = doc.data();
+                    var ovName = (d.item || "").toLowerCase();
+                    if (ovName.includes(searchLower) && !mainNames.some(function(n){ return n === ovName; })) {
+                        var ts = d.updatedAt && d.updatedAt.toDate ? d.updatedAt.toDate() : null;
+                        var dateStr = ts ? padTwo(ts.getDate()) + "/" + padTwo(ts.getMonth()+1) + "/" + ts.getFullYear() : "";
+                        html += '<div class="result-item-overflow-only">' +
+                            '<div class="result-name">📦 ' + escapeHtml(d.item || "") + ' <span style="font-size:11px;font-weight:400;color:#e65100;">(overflow/temp stock only)</span></div>' +
+                            '<div class="result-location">' + escapeHtml(d.loc || "") + '</div>' +
+                            '<div style="font-size:12px;color:#7f8c8d;margin-top:4px;">' +
+                            (d.qty ? "Qty: " + escapeHtml(d.qty) + " &nbsp;|&nbsp; " : "") +
+                            escapeHtml(d.by || "") + " &nbsp;|&nbsp; " + dateStr +
+                            "</div></div>";
+                    }
+                });
+            }
+
+            if (matches.length > 100) {
+                html += '<div class="no-results" style="color:#667eea;">Showing first 100 of ' +
+                    matches.length + " results. Refine your search for more specific results.</div>";
+            }
+
+            resultsDiv.innerHTML = html;
+        }
 
             const searchLower = (searchTerm || "").toLowerCase();
             matches.sort(function (a, b) {
@@ -3185,7 +3521,316 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+// ============================================================
+// LOCATION OVERRIDES — fetch on load & apply to var data
+// ============================================================
+window._locationOverrides = {};
 
+(function initOverrides() {
+    db.collection("locationOverrides").get().then(function(snap) {
+        snap.forEach(function(doc) {
+            const d = doc.data();
+            if (!d.itemName) return;
+            const key = d.itemName.toLowerCase();
+            window._locationOverrides[key] = d;
+            // Mutate the in-memory data array immediately
+            for (var i = 0; i < data.length; i++) {
+                if ((data[i][0] || "").toLowerCase() === key) {
+                    if (d.deleted) {
+                        data.splice(i, 1);
+                        i--;
+                    } else {
+                        if (d.correctedName) data[i][0] = d.correctedName;
+                        if (d.newLocation) data[i][1] = d.newLocation;
+                    }
+                    break;
+                }
+            }
+        });
+        // Refresh status count
+        const statusEl = document.getElementById("status");
+        if (statusEl) statusEl.textContent = data.length + " items loaded";
+    }).catch(function(err) {
+        console.error("locationOverrides load error:", err);
+    });
+})();
+
+// ============================================================
+// SUGGESTION MODAL — autocomplete against var data
+// ============================================================
+(function wireSuggestAutocomplete() {
+    const suggestInput  = document.getElementById("suggest-item");
+    const dropdown      = document.getElementById("suggest-item-dropdown");
+    const correctedRow  = document.getElementById("suggest-corrected-name-row");
+    const suggestLoc    = document.getElementById("suggest-location");
+    let _selectedFromData = false;
+
+    if (!suggestInput || !dropdown) return;
+
+    suggestInput.addEventListener("input", function() {
+        const val = suggestInput.value.trim();
+        _selectedFromData = false;
+        correctedRow.style.display = "none";
+        dropdown.innerHTML = "";
+        if (!val) { dropdown.style.display = "none"; return; }
+        const lower = val.toLowerCase();
+        const hits = data.filter(function(row) {
+            return (row[0] || "").toLowerCase().includes(lower);
+        }).slice(0, 80);
+        if (!hits.length) { dropdown.style.display = "none"; return; }
+        hits.forEach(function(row) {
+            const div = document.createElement("div");
+            div.className = "sug-drop-item";
+            div.innerHTML = '<strong>' + escapeHtml(row[0]) + '</strong>' +
+                '<div class="sug-drop-loc">' + escapeHtml(row[1]) + '</div>';
+            div.addEventListener("mousedown", function(e) {
+                e.preventDefault();
+                suggestInput.value = row[0];
+                suggestLoc.value = row[1];
+                _selectedFromData = true;
+                correctedRow.style.display = "block";
+                dropdown.style.display = "none";
+                dropdown.innerHTML = "";
+            });
+            dropdown.appendChild(div);
+        });
+        dropdown.style.display = "block";
+    });
+
+    suggestInput.addEventListener("blur", function() {
+        setTimeout(function() { dropdown.style.display = "none"; }, 200);
+    });
+    suggestInput.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") { dropdown.style.display = "none"; dropdown.innerHTML = ""; }
+    });
+})();
+
+// ============================================================
+// ADMIN CARD ACTIONS — event delegation on results div
+// ============================================================
+(function wireCardActions() {
+    const resultsDiv = document.getElementById("results");
+    if (!resultsDiv) return;
+
+    resultsDiv.addEventListener("click", function(e) {
+        const btn = e.target.closest("[data-card-action]");
+        if (!btn) return;
+        if (!(auth && auth.currentUser)) return;
+
+        const action   = btn.getAttribute("data-card-action");
+        const itemName = btn.getAttribute("data-item");
+        const itemLoc  = btn.getAttribute("data-loc");
+        const approvedBy = auth.currentUser.email || "admin";
+        const approvedAt = firebase.firestore.FieldValue.serverTimestamp();
+        const searchInput = document.getElementById("search");
+        const currentSearch = searchInput ? searchInput.value.trim() : "";
+
+        function reRun() {
+            if (currentSearch) performSearch();
+        }
+
+        // ── DELETE ──
+        if (action === "delete") {
+            if (!confirm('Delete "' + itemName + '" from the database? This cannot be undone.')) return;
+            db.collection("locationOverrides").add({
+                itemName: itemName,
+                deleted: true,
+                approvedBy: approvedBy,
+                approvedAt: approvedAt
+            }).then(function() {
+                window._locationOverrides[itemName.toLowerCase()] = { deleted: true, itemName: itemName };
+                for (var i = 0; i < data.length; i++) {
+                    if ((data[i][0] || "").toLowerCase() === itemName.toLowerCase()) {
+                        data.splice(i, 1); break;
+                    }
+                }
+                reRun();
+            }).catch(function(err) { alert("Delete failed: " + err.message); });
+        }
+
+        // ── EDIT LOCATION ──
+        if (action === "edit-location") {
+            const newLoc = prompt("Update location for " + itemName + ":\n(current: " + itemLoc + ")", itemLoc);
+            if (newLoc === null || newLoc.trim() === "") return;
+            if (!confirm('Change location of "' + itemName + '" to "' + newLoc.trim() + '"?')) return;
+            db.collection("locationOverrides").add({
+                itemName: itemName,
+                newLocation: newLoc.trim(),
+                deleted: false,
+                approvedBy: approvedBy,
+                approvedAt: approvedAt
+            }).then(function() {
+                const key = itemName.toLowerCase();
+                window._locationOverrides[key] = Object.assign(window._locationOverrides[key] || {}, {
+                    itemName: itemName, newLocation: newLoc.trim(), deleted: false
+                });
+                for (var i = 0; i < data.length; i++) {
+                    if ((data[i][0] || "").toLowerCase() === key) {
+                        data[i][1] = newLoc.trim(); break;
+                    }
+                }
+                reRun();
+            }).catch(function(err) { alert("Edit failed: " + err.message); });
+        }
+
+        // ── RENAME ITEM ──
+        if (action === "rename") {
+            const newName = prompt("Rename item:\n(current: " + itemName + ")", itemName);
+            if (newName === null || newName.trim() === "" || newName.trim() === itemName) return;
+            if (!confirm('Rename "' + itemName + '" to "' + newName.trim() + '"?')) return;
+            db.collection("locationOverrides").add({
+                itemName: itemName,
+                correctedName: newName.trim(),
+                deleted: false,
+                approvedBy: approvedBy,
+                approvedAt: approvedAt
+            }).then(function() {
+                const key = itemName.toLowerCase();
+                window._locationOverrides[key] = Object.assign(window._locationOverrides[key] || {}, {
+                    itemName: itemName, correctedName: newName.trim(), deleted: false
+                });
+                for (var i = 0; i < data.length; i++) {
+                    if ((data[i][0] || "").toLowerCase() === key) {
+                        data[i][0] = newName.trim(); break;
+                    }
+                }
+                reRun();
+            }).catch(function(err) { alert("Rename failed: " + err.message); });
+        }
+    });
+})();
+
+// ============================================================
+// WEEKLY SYNC PANEL
+// ============================================================
+(function wireWeeklySync() {
+    const elLoc     = document.getElementById("sync-count-location");
+    const elName    = document.getElementById("sync-count-name");
+    const elDel     = document.getElementById("sync-count-deleted");
+    const elTotal   = document.getElementById("sync-count-total");
+    const elCleared = document.getElementById("sync-last-cleared");
+    const btnDl     = document.getElementById("sync-download-btn");
+    const btnSum    = document.getElementById("sync-summary-btn");
+    const btnClr    = document.getElementById("sync-clear-btn");
+
+    if (!elLoc) return; // Panel not yet visible
+
+    // Real-time listener on locationOverrides
+    db.collection("locationOverrides").onSnapshot(function(snap) {
+        let locCount = 0, nameCount = 0, delCount = 0;
+        snap.forEach(function(doc) {
+            const d = doc.data();
+            if (d.deleted) delCount++;
+            else {
+                if (d.newLocation) locCount++;
+                if (d.correctedName) nameCount++;
+            }
+        });
+        if (elLoc)   elLoc.textContent   = locCount;
+        if (elName)  elName.textContent  = nameCount;
+        if (elDel)   elDel.textContent   = delCount;
+        if (elTotal) elTotal.textContent = locCount + nameCount + delCount;
+    });
+
+    // ── Download Updated HTML ──
+    if (btnDl) btnDl.addEventListener("click", function() {
+        fetch("https://raw.githubusercontent.com/tonyhawkins1987-rgb/equipment-finder/refs/heads/main/index.html")
+        .then(function(r) { return r.text(); })
+        .then(function(html) {
+            return db.collection("locationOverrides").get().then(function(snap) {
+                // Build a map of overrides
+                const ovMap = {};
+                snap.forEach(function(doc) {
+                    const d = doc.data();
+                    if (!d.itemName) return;
+                    ovMap[d.itemName] = d;
+                });
+
+                // Find var data array in HTML and rebuild it
+                const dataStart = html.indexOf("var data = [");
+                const dataEnd   = html.indexOf("];", dataStart) + 2;
+                if (dataStart < 0) { alert("Could not locate var data array in source HTML."); return; }
+
+                // Parse existing entries via regex
+                const rawBlock = html.slice(dataStart, dataEnd);
+                // Extract pairs: ["Name","Location"]
+                const pairRe = /\["([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*"([^"\\]*(?:\\.[^"\\]*)*)"\]/g;
+                const newPairs = [];
+                let m;
+                while ((m = pairRe.exec(rawBlock)) !== null) {
+                    let name = m[1];
+                    let loc  = m[2];
+                    const ov = ovMap[name];
+                    if (ov) {
+                        if (ov.deleted) continue;
+                        if (ov.correctedName) name = ov.correctedName;
+                        if (ov.newLocation)   loc  = ov.newLocation;
+                    }
+                    newPairs.push('["' + name.replace(/"/g, '\\"') + '","' + loc.replace(/"/g, '\\"') + '"]');
+                }
+
+                const newDataBlock = "var data = [\n            " + newPairs.join(",\n            ") + "\n        ];";
+                const updatedHtml = html.slice(0, dataStart) + newDataBlock + html.slice(dataEnd);
+
+                const blob = new Blob([updatedHtml], { type: "text/html" });
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = "index-updated-" + new Date().toISOString().slice(0,10) + ".html";
+                a.click();
+            });
+        })
+        .catch(function(err) { alert("Download failed: " + err.message); });
+    });
+
+    // ── View Change Summary ──
+    if (btnSum) btnSum.addEventListener("click", function() {
+        db.collection("locationOverrides").get().then(function(snap) {
+            if (snap.empty) { alert("No pending overrides found."); return; }
+            let lines = ["=== Pending Overrides ===\n"];
+            snap.forEach(function(doc) {
+                const d = doc.data();
+                const when = d.approvedAt && d.approvedAt.toDate ? d.approvedAt.toDate().toLocaleString() : "unknown date";
+                if (d.deleted) {
+                    lines.push("❌ DELETED: " + d.itemName + "\n   By: " + (d.approvedBy||"?") + "  At: " + when);
+                } else if (d.newLocation && d.correctedName) {
+                    lines.push("✏️ RENAMED + MOVED: " + d.itemName +
+                        "\n   → New name: " + d.correctedName +
+                        "\n   → New location: " + d.newLocation +
+                        "\n   By: " + (d.approvedBy||"?") + "  At: " + when);
+                } else if (d.newLocation) {
+                    lines.push("📍 LOCATION CHANGE: " + d.itemName +
+                        "\n   → " + d.newLocation +
+                        "\n   By: " + (d.approvedBy||"?") + "  At: " + when);
+                } else if (d.correctedName) {
+                    lines.push("✏️ RENAMED: " + d.itemName +
+                        " → " + d.correctedName +
+                        "\n   By: " + (d.approvedBy||"?") + "  At: " + when);
+                }
+            });
+            alert(lines.join("\n\n"));
+        }).catch(function(err) { alert("Error: " + err.message); });
+    });
+
+    // ── Clear Overrides ──
+    if (btnClr) btnClr.addEventListener("click", function() {
+        if (!confirm("Clear ALL location overrides? This will remove all pending changes. This cannot be undone.")) return;
+        db.collection("locationOverrides").get().then(function(snap) {
+            const batch = db.batch();
+            snap.forEach(function(doc) { batch.delete(doc.ref); });
+            return batch.commit();
+        }).then(function() {
+            window._locationOverrides = {};
+            const now = new Date().toLocaleString();
+            if (elCleared) elCleared.textContent = "Last cleared: " + now;
+            // Record the cleared timestamp
+            db.collection("locationOverrides").add({
+                _meta: "cleared",
+                clearedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                clearedBy: (auth && auth.currentUser) ? auth.currentUser.email : "admin"
+            });
+        }).catch(function(err) { alert("Clear failed: " + err.message); });
+    });
+})();
         // --------------------------------------------
         // Suggestion modal logic
         // --------------------------------------------
@@ -3649,7 +4294,7 @@ if (action === 'delete') {
                 return;
             }
 
-            let newStatus = "pending";
+let newStatus = "pending";
             if (action === "approve") {
                 newStatus = "approved";
             } else if (action === "reject") {
@@ -3688,6 +4333,43 @@ if (action === 'delete') {
                             error
                         );
                     });
+
+                // On approval, also write to locationOverrides
+                if (newStatus === "approved") {
+                    db.collection("locationSuggestions").doc(docId).get()
+                    .then(function(snap) {
+                        const sd = snap.data();
+                        return db.collection("locationOverrides").add({
+                            itemName:       sd.itemText        || itemText        || "",
+                            newLocation:    sd.correctLocation || correctLocation || "",
+                            correctedName:  sd.correctedName   || "",
+                            deleted:        false,
+                            approvedBy:     auth.currentUser.email || null,
+                            approvedAt:     firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    })
+                    .then(function(ref) {
+                        // Update in-memory data immediately
+                        const ovItemName    = itemText || "";
+                        const ovNewLocation = correctLocation || "";
+                        if (ovItemName) {
+                            const key = ovItemName.toLowerCase();
+                            window._locationOverrides[key] = Object.assign(
+                                window._locationOverrides[key] || {},
+                                { itemName: ovItemName, newLocation: ovNewLocation, deleted: false }
+                            );
+                            for (var i = 0; i < data.length; i++) {
+                                if ((data[i][0] || "").toLowerCase() === key) {
+                                    if (ovNewLocation) data[i][1] = ovNewLocation;
+                                    break;
+                                }
+                            }
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error("locationOverrides write error:", err);
+                    });
+                }
             }
         });
 
