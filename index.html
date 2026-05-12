@@ -4165,12 +4165,12 @@ if (action === 'delete') {
                             approvedAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
                     }).then(function() {
-                        var ovItemName = itemText || "";
-                        var ovNewLocation = correctLocation || "";
+                        var ovItemName = sd.itemText || "";
+                        var ovNewLocation = sd.correctLocation || "";
                         if (ovItemName) {
                             var key = ovItemName.toLowerCase();
                             window._locationOverrides[key] = Object.assign(window._locationOverrides[key] || {}, { itemName: ovItemName, newLocation: ovNewLocation, deleted: false });
-                            for (var i = 0; i < data.length; i++) { if ((data[i][0] || "").toLowerCase() === key) { if (ovNewLocation) data[i][1] = ovNewLocation; break; } }
+                            var found = false;                             for (var i = 0; i < data.length; i++) { if (data[i][0].toLowerCase() === key) { if (ovNewLocation) data[i][1] = ovNewLocation; found = true; break; } }                             if (!found && ovItemName && ovNewLocation) { data.push([ovItemName, ovNewLocation]); }                             if (typeof performSearch === 'function') performSearch();
                         }
                     }).catch(function(err) { console.error("locationOverrides write error:", err); });
                 }
