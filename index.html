@@ -3436,6 +3436,7 @@
                         }
                     }
                 });
+                            Object.keys(window._locationOverrides).forEach(function(k) { var ov = window._locationOverrides[k]; if (ov.deleted || !ov.itemName || !ov.newLocation) return; var exists = data.some(function(row) { return (row[0] || '').toLowerCase() === k; }); if (!exists) { data.push([ov.correctedName || ov.itemName, ov.newLocation]); } });
                 var statusEl = document.getElementById("status");
                 if (statusEl) statusEl.textContent = "✓ " + data.length + " items loaded";
             }).catch(function(err) { console.error("locationOverrides load error:", err); });
@@ -3547,7 +3548,7 @@ if (btnDl) btnDl.addEventListener("click", function() {
             var overrides = {};
             snap.forEach(function(doc) {
               var d = doc.data();
-              if (!d._meta) overrides[doc.id] = d;
+              if (!d._meta && d.itemName) overrides[d.itemName.toLowerCase()] = d;
             });
             var newPairs = [];
             for (var i = 0; i < data.length; i++) {
@@ -3561,7 +3562,8 @@ if (btnDl) btnDl.addEventListener("click", function() {
               }
               newPairs.push('["' + name.replace(/"/g, '\\"') + '","' + loc.replace(/"/g, '\\"') + '"]');
             }
-            var newDataBlock = "var data = [\n" + newPairs.join(",\n") + "\n];";
+            Object.keys(overrides).forEach(function(k) { var ov = overrides[k]; if (!ov.deleted && ov.itemName && ov.newLocation) { var existsInPairs = false; for (var j = 0; j < newPairs.length; j++) { if (newPairs[j].toLowerCase().indexOf('"' + k + '"') >= 0) { existsInPairs = true; break; } } if (!existsInPairs) { var n = ov.correctedName || ov.itemName; newPairs.push('["' + n.replace(/"/g, '\\"') + '","' + ov.newLocation.replace(/"/g, '\\"') + '"]'); } } });
+              var newDataBlock = "var data = [\n" + newPairs.join(",\n") + "\n];";
             var src = document.documentElement.outerHTML;
             var ds = src.indexOf("var data = [");
             var de = src.indexOf("];", ds) + 2;
